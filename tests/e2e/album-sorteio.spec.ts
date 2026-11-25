@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { prepararJogos } from "../fixtures/jogos";
 
-test("organizador sorteia e familiar reencontra sua missão em outro navegador", async ({
+test("familiar recebe sua cor no cadastro e reencontra sua missão em outro navegador", async ({
   browser,
 }) => {
   test.setTimeout(120000);
@@ -18,19 +18,7 @@ test("organizador sorteia e familiar reencontra sua missão em outro navegador",
     return page;
   }
   try {
-    const admin = await abrir(f.org),
-      familiar = await abrir(f.familiar);
-    await expect(
-      admin.getByRole("button", { name: "Sortear as nove cores" }),
-    ).toBeDisabled();
-    for (let i = 3; i <= 9; i++) await f.completarPerfil(i);
-    await admin.reload();
-    await admin.getByRole("button", { name: "Sortear as nove cores" }).click();
-    await expect(
-      admin.getByRole("button", { name: "Descobrir minha cor" }),
-    ).toBeVisible();
-    await familiar.reload();
-    await familiar.getByRole("button", { name: "Descobrir minha cor" }).click();
+    const familiar = await abrir(f.familiar);
     await expect(familiar.getByText("0 de 9 fotos enviadas")).toBeVisible();
     const cor = await familiar.locator(".missao header h3").innerText();
     await familiar.screenshot({

@@ -44,6 +44,7 @@ export function Entrada() {
       });
       const data = await r.json();
       if (!r.ok) throw Error(data.message);
+      if (foto) history.replaceState(null, "", "/album");
       const auth = await db.auth.verifyOtp({
         type: "magiclink",
         token_hash: data.token_hash,

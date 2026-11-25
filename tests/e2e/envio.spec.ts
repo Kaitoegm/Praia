@@ -18,11 +18,6 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
   };
   const bytes = await readFile("public/praia.jpg");
   try {
-    for (let i = 3; i <= 9; i++) await f.completarPerfil(i);
-    expect(
-      (await f.org.client.rpc("sortear_cores", { viagem: f.viagem })).error,
-    ).toBeNull();
-    expect((await f.familiar.client.rpc("revelar_minha_cor")).error).toBeNull();
     expect((await request.get(base)).status()).toBe(401);
     const observer = await browser.newPage({
       viewport: { width: 390, height: 800 },

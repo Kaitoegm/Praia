@@ -13,8 +13,6 @@ import { apiFotos, type VagaFoto } from "./fotos";
 import { EnviarFoto } from "./EnviarFoto";
 
 type Missao = {
-  cadastros: number;
-  sorteada: boolean;
   cor: null | { nome: string; amostra: string; sugestao: string };
   vagas: { posicao: number; confirmada: boolean }[];
   colecoes: {
@@ -25,19 +23,14 @@ type Missao = {
   }[];
 };
 export function MinhaCor({
-  viagem,
-  admin,
   pessoas,
   minhaVaga,
 }: {
-  viagem: string;
-  admin: boolean;
   pessoas: Pessoa[];
   minhaVaga: number;
 }) {
   const [missao, setMissao] = useState<Missao | null>(null),
-    [erro, setErro] = useState(""),
-    [ocupado, setOcupado] = useState(false);
+    [erro, setErro] = useState("");
   const [familia, setFamilia] = useState(
     new URLSearchParams(location.search).has("familia"),
   );
@@ -89,19 +82,6 @@ export function MinhaCor({
       document.removeEventListener("visibilitychange", atualizar);
     };
   }, [carregar]);
-  async function avancar() {
-    setOcupado(true);
-    setErro("");
-    const { error } = missao?.sorteada
-      ? await db.rpc("revelar_minha_cor")
-      : await db.rpc("sortear_cores", { viagem });
-    await carregar();
-    if (error)
-      setErro(
-        "Não foi possível concluir. Confira o estado da missão e tente novamente.",
-      );
-    setOcupado(false);
-  }
   async function voltar() {
     await carregar();
     setEditando(null);
@@ -160,40 +140,16 @@ export function MinhaCor({
         <>
           {!familia && !missao.cor ? (
             <div className="sorteio">
-              <CameraPlus size={34} strokeWidth={1} />
-              <h2>
-                {missao.sorteada
-                  ? "Sua cor está pronta"
-                  : "Uma cor para cada pessoa"}
-              </h2>
-              <p>
-                {missao.sorteada
-                  ? "Revele a sua para começar a fotografar."
-                  : admin
-                    ? missao.cadastros + ` de ${pessoas.length} cadastros completos.`
-                    : "Sua cor será revelada em breve."}
-              </p>
-              {admin || missao.sorteada ? (
-                <button
-                  disabled={
-                    ocupado || (!missao.sorteada && missao.cadastros !== pessoas.length)
-                  }
-                  onClick={avancar}
-                >
-                  {missao.sorteada
-                    ? "Descobrir minha cor"
-                    : (pessoas.length === 9 ? "Sortear as nove cores" : `Sortear as ${pessoas.length} cores`)}
-                </button>
-              ) : (
-                <button onClick={carregar}>Atualizar missão</button>
-              )}
+              <h2>Sua cor</h2>
+              <p>Confirme sua foto de perfil para receber uma cor.</p>
+              <a href="/perfil">Abrir meu perfil</a>
             </div>
           ) : (
             <>
               <header className="colecao-titulo">
                 <h3>
                   {!familia && <i className="gota" />}
-                  {familia ? "Fotos da família" : missao.cor?.nome}
+                  {familia ? "Fotos da família" : "Sua cor: " + missao.cor?.nome}
                 </h3>
                 <small>
                   {familia

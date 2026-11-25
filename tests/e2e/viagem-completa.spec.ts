@@ -21,8 +21,6 @@ test('dois viajantes acompanham a mesma foto e o aviso da viagem',async({browser
     }
     const org=await entrar(true),familiar=await entrar(false)
     await familiar.getByRole('button',{name:'Da família'}).click()
-    await org.getByRole('button',{name:'Sortear as nove cores'}).click()
-    await org.getByRole('button',{name:'Descobrir minha cor'}).click()
     await org.getByRole('button',{name:'Abrir foto 1 de 9',exact:true}).click()
     await org.getByLabel('Escolher da galeria').setInputFiles('public/praia.jpg')
     await org.getByLabel('Legenda (opcional)').fill('Primeiro dia de praia')

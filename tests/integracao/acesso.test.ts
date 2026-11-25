@@ -87,7 +87,7 @@ test("nove vagas, permissões e retomada de cadastro", async () => {
     expect(
       (
         await org.rpc("reservar_vaga", {
-          posicao: 10,
+          posicao: 14,
           familiar: "Extra",
           endereco: emails[9],
         })

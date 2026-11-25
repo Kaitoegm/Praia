@@ -108,8 +108,6 @@ function Area({ id }: { id: string }) {
               <Ranking pessoas={pessoas} eu={eu} fuso={viagem.fuso} />
             ) : path === "/album" ? (
               <MinhaCor
-                viagem={viagem.id}
-                admin={eu?.vaga === 1}
                 pessoas={pessoas}
                 minhaVaga={eu?.vaga ?? 0}
               />

@@ -26,6 +26,8 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     ).toBeDisabled();
     await p.getByLabel("Escolher da galeria").setInputFiles("public/praia.jpg");
     await p.getByRole("button", { name: "Entrar na viagem" }).click();
+    await expect(p).toHaveURL(/\/album$/);
+    await expect(p.getByRole("heading", {name: /^Sua cor: .+/})).toBeVisible();
     await p.getByRole("link", { name: "Jogos", exact: true }).click();
     const anterior = await p
       .getByRole("img", { name: "Foto de Caio" })
