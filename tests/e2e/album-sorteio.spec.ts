@@ -20,13 +20,13 @@ test("familiar recebe sua cor no cadastro e reencontra sua missão em outro nave
   try {
     const familiar = await abrir(f.familiar);
     await expect(familiar.getByText("0 de 9 fotos enviadas")).toBeVisible();
-    const cor = await familiar.locator(".missao header h3").innerText();
+    const cor = await familiar.locator(".postal-cor h1").innerText();
     await familiar.screenshot({
       path: test.info().outputPath("missao.png"),
       fullPage: true,
     });
     const outro = await abrir(f.familiar);
-    await expect(outro.locator(".missao header h3")).toHaveText(cor);
+    await expect(outro.locator(".postal-cor h1")).toHaveText(cor, { useInnerText: true });
     await expect(outro.locator(".grid li")).toHaveCount(9);
     await expect(outro.getByText("Foto 9 de 9")).toBeVisible();
   } finally {

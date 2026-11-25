@@ -86,6 +86,8 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
       .click();
     await expect(observer.locator(".caixa-avisos>a")).toHaveCount(8);
     await observer.getByRole("button", { name: "Fechar notificações" }).click();
+    await expect(observer.locator(".quadro").first()).toHaveAccessibleName(/posição 8$/);
+    await expect(observer.locator(".ponto-autor")).toHaveCount(8);
     await observer.locator(".quadro").first().click();
     await expect(observer.getByRole("dialog")).toBeVisible();
     await observer.getByRole("button", { name: "Fechar foto" }).click();

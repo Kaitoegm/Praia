@@ -123,17 +123,12 @@ export async function fotos(req, res) {
         .single();
       if (p.error) throw falha(403, "Acesso indisponível.");
       const familia = url.searchParams.get("colecao") === "familia";
-      const consulta = db
-        .from("vagas_foto")
-        .select("vaga,posicao,versao,arquivo,legenda")
-        .eq("viagem_id", p.data.viagem_id);
-      const r = await (
-        familia
-          ? consulta.not("arquivo", "is", null)
-          : consulta.eq("vaga", p.data.vaga)
-      )
-        .order("vaga")
-        .order("posicao");
+      const r = familia
+        ? await db.rpc("fotos_familia", { viagem: p.data.viagem_id })
+        : await db.from("vagas_foto")
+            .select("vaga,posicao,versao,arquivo,legenda")
+            .eq("viagem_id", p.data.viagem_id).eq("vaga", p.data.vaga)
+            .order("posicao");
       if (r.error) throw r.error;
       const paths = r.data
         .filter((v) => v.arquivo)
@@ -159,6 +154,8 @@ export async function fotos(req, res) {
               posicao: v.posicao,
               versao: v.versao,
               legenda: v.legenda,
+              cor: v.cor,
+              amostra: v.amostra,
               foto,
               mini,
             };

@@ -6,6 +6,8 @@ export type VagaFoto = {
   legenda: string | null;
   foto: string | null;
   mini: string | null;
+  cor?: string;
+  amostra?: string;
 };
 export async function apiFotos<T>(query = "", body?: BodyInit) {
   const { data } = await db.auth.getSession();

@@ -119,11 +119,17 @@ export function MinhaCor({
   const grade = familia ? compartilhadas : fotos;
   return (
     <section className="missao caderno-pagina">
-      <header className="capa">
-        <small>Nosso álbum</small>
-        <h1>9 Momentos de Cores</h1>
-        <p>Nossas cores, nossas histórias.</p>
-      </header>
+      {!familia && missao?.cor ? (
+        <header className="postal-cor">
+          <h1><span>Sua cor é</span> {missao.cor.nome}</h1>
+          <img src="/selo-orla.webp" width="92" height="95" alt="" />
+        </header>
+      ) : (
+        <header className="capa">
+          <small>Nosso álbum</small>
+          <h1>9 Momentos de Cores</h1>
+        </header>
+      )}
       <div className="album-abas">
         <button aria-pressed={!familia} onClick={() => setFamilia(false)}>
           <Camera size={16} /> Minha cor
@@ -151,8 +157,7 @@ export function MinhaCor({
             <>
               <header className="colecao-titulo">
                 <h3>
-                  {!familia && <i className="gota" />}
-                  {familia ? "Fotos da família" : "Sua cor: " + missao.cor?.nome}
+                  {familia ? "Fotos da família" : "Minha coleção"}
                 </h3>
                 <small>
                   {familia
@@ -170,6 +175,7 @@ export function MinhaCor({
                         familia
                           ? "Ver foto de " +
                             nome(v.vaga) +
+                            (v.cor ? ", " + v.cor : "") +
                             ", posição " +
                             v.posicao
                           : "Abrir foto " + v.posicao + " de 9"
@@ -193,7 +199,11 @@ export function MinhaCor({
                         {v.legenda || "Foto " + v.posicao + " de 9"}
                       </span>
                       <small>
-                        {familia ? nome(v.vaga) : v.mini ? "" : "Aguardando"}
+                        {familia ? <>
+                          <i className="ponto-autor" style={{ backgroundColor: v.amostra }} aria-hidden="true" />
+                          {nome(v.vaga)}
+                          {v.cor && <span className="cor-acessivel"> · {v.cor}</span>}
+                        </> : v.mini ? "" : "Aguardando"}
                       </small>
                     </button>
                   </li>
@@ -205,7 +215,6 @@ export function MinhaCor({
                   <p>A primeira foto da família vai aparecer aqui.</p>
                 </div>
               )}
-              {!familia && <p className="dica-cor">{missao.cor?.sugestao}</p>}
             </>
           )}
         </>

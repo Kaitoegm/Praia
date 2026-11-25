@@ -30,7 +30,7 @@ function Jogos() {
 }
 
 function Album() {
-  return <><header className="panel yellow"><Sun/><h1>Minha cor</h1><p>Amarelo · Coleção de exemplo</p></header><section><h2>Minhas fotos</h2><p>Um guarda-sol, uma fruta ou um detalhe da paisagem. Encontre o amarelo na praia.</p><strong>0 de 9 fotos enviadas</strong><ol className="grid">{Array.from({length:9},(_,i)=><li key={i}><Photo/><span>Foto {i+1} de 9</span></li>)}</ol></section></>
+  return <><header className="panel yellow"><Sun/><h1>Minha cor</h1><p>Amarelo · Coleção de exemplo</p></header><section><h2>Minhas fotos</h2><strong>0 de 9 fotos enviadas</strong><ol className="grid">{Array.from({length:9},(_,i)=><li key={i}><Photo/><span>Foto {i+1} de 9</span></li>)}</ol></section></>
 }
 
 export function App() {
