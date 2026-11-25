@@ -16,6 +16,10 @@ test("organizador joga, revisa e corrige uma rodada no celular", async ({
     await expect(
       page.getByText("O primeiro jogo ainda vai começar."),
     ).toBeVisible();
+    const lista = page.getByRole("list", { name: "Classificação" });
+    await expect(lista.getByRole("listitem")).toHaveCount(2);
+    await expect(lista.getByRole("img", { name: "Foto de Bia" })).toBeVisible();
+    await expect(lista.getByText("Caio")).toHaveCount(0);
     await page.getByRole("button", { name: "Lançar rodada" }).click();
     await page.getByLabel("Jogo", { exact: true }).fill("Frescobol");
     await page.getByLabel("Nome da rodada").fill("Final");

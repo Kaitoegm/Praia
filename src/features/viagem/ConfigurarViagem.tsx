@@ -52,7 +52,7 @@ export function ConfigurarViagem({
         <button disabled={busy}>Salvar viagem</button>
       </form>
       <section>
-        <h2>Participantes · {pessoas.filter((p) => p.usuario_id).length}/9</h2>
+        <h2>Participantes · {pessoas.filter((p) => p.usuario_id).length}/{pessoas.length}</h2>
         <ol>
           {pessoas.map((p) => (
             <li key={p.vaga}>

@@ -17,11 +17,11 @@ const config = Array.isArray(entrada)
 const { nomes, nome, inicio, fim, fuso } = config ?? {};
 if (
   !Array.isArray(nomes) ||
-  nomes.length !== 9 ||
+  nomes.length < 1 || nomes.length > 13 ||
   nomes.some((n) => typeof n !== "string" || !n.trim())
 )
-  throw Error("Informe nove nomes.");
-if (new Set(nomes.map(n => n.trim().normalize("NFC").toLocaleLowerCase("pt-BR"))).size !== 9)
+  throw Error("Informe de um a treze nomes.");
+if (new Set(nomes.map(n => n.trim().normalize("NFC").toLocaleLowerCase("pt-BR"))).size !== nomes.length)
   throw Error("Use nomes ou apelidos distintos para identificar cada viajante.");
 if (typeof nome !== "string" || !nome.trim()) throw Error("Informe o nome da viagem.");
 for (const data of [inicio, fim]) {
@@ -32,7 +32,7 @@ if (fim < inicio) throw Error("O fim da viagem deve ser igual ou posterior ao in
 if (typeof fuso !== "string" || !fuso.trim()) throw Error("Informe o fuso horário.");
 new Intl.DateTimeFormat("pt-BR", { timeZone: fuso });
 if (validar) {
-  console.log(`Configuração válida: ${nome.trim()}, ${inicio} a ${fim}, ${fuso}, nove viajantes.`);
+  console.log(`Configuração válida: ${nome.trim()}, ${inicio} a ${fim}, ${fuso}, ${nomes.length} viajantes.`);
   process.exit(0);
 }
 const dir = join(process.env.LOCALAPPDATA || process.env.HOME, "PraiaEnsaio");
@@ -81,7 +81,7 @@ ok(
 );
 if (arquivo) {
   const vagas = ok(await db.from("participantes").select("vaga,nome").eq("viagem_id", dados.id).order("vaga"));
-  if (vagas.length !== 9 || vagas.some(p => p.nome !== nomes[p.vaga - 1].trim()))
+  if (vagas.length !== nomes.length || vagas.some(p => p.nome !== nomes[p.vaga - 1].trim()))
     throw Error("A ordem ou os nomes divergem das vagas já cadastradas. Confira a lista da viagem existente.");
 }
 for (const tipo of ["familia", "organizador"])

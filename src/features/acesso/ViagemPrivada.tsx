@@ -60,6 +60,11 @@ function Area({ id }: { id: string }) {
   }
   useEffect(() => {
     void reload();
+    const atualizar = () => {
+      if (!document.hidden) void reload();
+    };
+    document.addEventListener('visibilitychange', atualizar);
+    return () => document.removeEventListener('visibilitychange', atualizar);
   }, []);
   const eu = pessoas.find((p) => p.usuario_id === id);
   const path = location.pathname;

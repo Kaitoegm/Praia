@@ -113,10 +113,11 @@ export function Ranking({
         : "Pontuação corrigida.",
     );
   }
+  const inscritos = pessoas.filter((p) => p.usuario_id && p.avatar);
   if (nova)
     return (
       <Rodada
-        pessoas={pessoas}
+        pessoas={inscritos}
         jogos={[...new Set(rows?.map((r) => r.jogo))]}
         fechar={() => setNova(false)}
         salvo={() => {
@@ -154,7 +155,7 @@ export function Ranking({
         <>
           {rows.length === 0 && <p>O primeiro jogo ainda vai começar.</p>}
           <ol aria-label="Classificação">
-            {classificar(pessoas, rows).map((p) => (
+            {classificar(inscritos, rows).map((p) => (
               <li key={p.vaga}>
                 <b>{p.posicao}º</b>
                 {p.avatar?<img className="avatar-ranking" src={p.avatar} alt={'Foto de '+p.nome}/>:<span className="avatar-ranking iniciais" aria-hidden="true">{p.nome.slice(0,1)}</span>}

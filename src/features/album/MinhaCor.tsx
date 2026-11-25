@@ -170,19 +170,19 @@ export function MinhaCor({
                 {missao.sorteada
                   ? "Revele a sua para começar a fotografar."
                   : admin
-                    ? missao.cadastros + " de 9 cadastros completos."
+                    ? missao.cadastros + ` de ${pessoas.length} cadastros completos.`
                     : "Sua cor será revelada em breve."}
               </p>
               {admin || missao.sorteada ? (
                 <button
                   disabled={
-                    ocupado || (!missao.sorteada && missao.cadastros !== 9)
+                    ocupado || (!missao.sorteada && missao.cadastros !== pessoas.length)
                   }
                   onClick={avancar}
                 >
                   {missao.sorteada
                     ? "Descobrir minha cor"
-                    : "Sortear as nove cores"}
+                    : (pessoas.length === 9 ? "Sortear as nove cores" : `Sortear as ${pessoas.length} cores`)}
                 </button>
               ) : (
                 <button onClick={carregar}>Atualizar missão</button>
@@ -197,7 +197,7 @@ export function MinhaCor({
                 </h3>
                 <small>
                   {familia
-                    ? compartilhadas.length + " de 81 fotos"
+                    ? compartilhadas.length + ` de ${pessoas.length * 9} fotos`
                     : fotos.filter((v) => v.foto).length +
                       " de 9 fotos enviadas"}
                 </small>

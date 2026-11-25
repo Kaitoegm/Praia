@@ -21,7 +21,7 @@ export async function prepararJogos() {
     ids.push(user.data.user.id);
     const vinculo = await admin
       .from("participantes")
-      .update({ usuario_id: user.data.user.id })
+      .update({ usuario_id: user.data.user.id, avatar: '/ohana-192.png' })
       .eq("viagem_id", viagem)
       .eq("vaga", vaga);
     if (vinculo.error) throw vinculo.error;
@@ -87,7 +87,7 @@ export async function prepararJogos() {
         ids.push(user.data.user.id);
         const result = await admin
           .from("participantes")
-          .update({ usuario_id: user.data.user.id })
+          .update({ usuario_id: user.data.user.id, avatar: '/ohana-192.png' })
           .eq("viagem_id", viagem)
           .eq("vaga", vaga);
         if (result.error) throw result.error;
