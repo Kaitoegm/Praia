@@ -28,7 +28,8 @@ export function vapid() {
   return chaves;
 }
 export async function entregar(db) {
-  const { data } = await db.rpc("proximos_push");
+  const { data, error } = await db.rpc("proximos_push");
+  if (error) throw error;
   await Promise.all(
     (data ?? []).map(async (e) => {
       try {

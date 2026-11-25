@@ -8,7 +8,8 @@ export function Avisos({ id }: { id: string }) {
   const [lista, setLista] = useState<Aviso[]>([]),
     [aberto, setAberto] = useState(false),
     [toast, setToast] = useState(""),
-    [nota, setNota] = useState("");
+    [nota, setNota] = useState(""),
+    [ativando, setAtivando] = useState(false);
   const chave = "praia-avisos-" + id;
   const [lido, setLido] = useState(() => Number(localStorage.getItem(chave)));
   const ultimo = useRef<number | null>(null);
@@ -65,6 +66,7 @@ export function Avisos({ id }: { id: string }) {
     }
   }
   async function ativar() {
+    setAtivando(true);
     try {
       if (
         !("serviceWorker" in navigator) ||
@@ -77,7 +79,9 @@ export function Avisos({ id }: { id: string }) {
         return;
       }
       if ((await Notification.requestPermission()) !== "granted") {
-        setNota("Os avisos continuam disponíveis neste sino.");
+        setNota(Notification.permission === "denied"
+          ? "As notificações estão bloqueadas. Permita os avisos do OHANA nas configurações do aparelho ou navegador."
+          : "Você pode ativar os avisos neste sino quando quiser.");
         return;
       }
       await navigator.serviceWorker.register("/avisos-sw.js");
@@ -99,6 +103,8 @@ export function Avisos({ id }: { id: string }) {
       setNota(
         "Não foi possível ativar os avisos neste aparelho. Tente novamente.",
       );
+    } finally {
+      setAtivando(false);
     }
   }
   return (
@@ -123,7 +129,7 @@ export function Avisos({ id }: { id: string }) {
               <X size={18} />
             </button>
           </header>
-          <button onClick={ativar}>Ativar no aparelho</button>
+          <button disabled={ativando} onClick={ativar}>{ativando ? "Ativando…" : "Ativar no aparelho"}</button>
           <p role="status">{nota}</p>
           {lista.length === 0 ? (
             <p>As novas fotos da família aparecem aqui.</p>

@@ -232,7 +232,7 @@ export async function fotos(req, res) {
       if (typeof legenda !== "string" || legenda.length > 500)
         throw falha(400, "Use uma legenda de até 500 caracteres.");
       await operar("confirmar", legenda.trim());
-      void entregar(db).catch(() => {});
+      await entregar(db).catch(() => console.error("Entrega adiada para a fila de avisos."));
     } else await operar("remover");
     enviar(200, { ok: true });
   } catch (e) {
