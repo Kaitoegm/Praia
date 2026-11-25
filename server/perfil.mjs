@@ -53,7 +53,15 @@ export async function perfil(req, res) {
       .select("*")
       .eq("hash", hash(convite))
       .single();
-    if (c.error) throw erro(403, "Convite indisponível.");
+    if (c.error) {
+      if (c.error.code === "PGRST116") throw erro(403, "Convite indisponível.");
+      console.error("Consulta do convite falhou", {
+        status: c.status,
+        codigo: c.error.code,
+        chaveInvalida: /invalid api key|invalid jwt/i.test(c.error.message),
+      });
+      throw erro(503, "O cadastro está temporariamente indisponível.");
+    }
     const device = cookies.praia_aparelho;
     if (req.method === "GET") {
       const chave = /^[a-f0-9]{64}$/.test(device ?? "")
