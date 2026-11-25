@@ -113,10 +113,16 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     );
     await page.goto("http://127.0.0.1:4174/album");
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
+    await page.route("**/api/fotos?acao=preparar*", (route) => route.abort("failed"), { times: 1 });
     await page
       .getByLabel("Escolher da galeria")
       .setInputFiles("public/praia.jpg");
+    await expect(page.getByRole("alert")).toBeVisible();
     await page.getByLabel("Legenda (opcional)").fill("O mar");
+    await page.reload();
+    await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
+    await expect(page.getByLabel("Legenda (opcional)")).toHaveValue("O mar");
+    await page.getByRole("button", {name: "Tentar novamente"}).click();
     await page.route(
       "**/api/fotos?acao=confirmar*",
       async (route) => {
@@ -149,14 +155,12 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     });
     await page.getByRole("button", { name: "Enviar foto" }).click();
     await expect(page.getByRole("alert")).toBeVisible();
-    await page.getByRole("button", { name: "Voltar à coleção" }).click();
-    await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
-    await expect(page.getByRole("img", { name: "O mar" })).toBeVisible();
-    await page
-      .getByLabel("Escolher da galeria")
-      .setInputFiles("tests/fixtures/fotos/exemplo.heic");
     await page.getByLabel("Legenda (opcional)").fill("Substituta");
-    await page.getByRole("button", { name: "Enviar foto" }).click();
+    await page.reload();
+    await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
+    await expect(page.getByLabel("Legenda (opcional)")).toHaveValue("Substituta");
+    await expect(page.getByText(/Rascunho recuperado/)).toBeVisible();
+    await page.getByRole("button", { name: "Tentar novamente" }).click();
     await expect(page.getByText("9 de 9 fotos enviadas")).toBeVisible();
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
     await expect(page.getByRole("img", { name: "Substituta" })).toBeVisible();

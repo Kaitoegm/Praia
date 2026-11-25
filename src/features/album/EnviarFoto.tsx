@@ -1,12 +1,16 @@
 import { useRef, useState, useEffect } from "react";
 import { apiFotos, type VagaFoto } from "./fotos";
 
+import { lerRascunho, salvarRascunho, type Rascunho } from "./rascunhos";
+
 export function EnviarFoto({
+  chaveRascunho,
   vaga,
   cor,
   voltar,
   concluir,
 }: {
+  chaveRascunho: string;
   vaga: VagaFoto;
   cor: string;
   voltar: () => void;
@@ -19,6 +23,42 @@ export function EnviarFoto({
     [erro, setErro] = useState(""),
     [busy, setBusy] = useState(false);
   const tentativa = useRef("");
+  const rascunho = useRef<Rascunho | undefined>(undefined);
+  const [lendo, setLendo] = useState(true);
+  const [avisoLocal, setAvisoLocal] = useState("");
+  const [fase, setFase] = useState("");
+  function guardar(valor?: Rascunho, novaFoto = false) {
+    rascunho.current = valor;
+    return salvarRascunho(chaveRascunho, valor, novaFoto).catch(() => {
+      setAvisoLocal("O navegador não conseguiu salvar o rascunho. Mantenha esta tela aberta.");
+    });
+  }
+  useEffect(() => {
+    let ativo = true;
+    lerRascunho(chaveRascunho).then(async (salvo) => {
+      if (!ativo || !salvo) return;
+      if (salvo.versao !== vaga.versao) {
+        await salvarRascunho(chaveRascunho);
+        return;
+      }
+      // Tentativas não confirmadas expiram no servidor depois de 24 horas.
+      if (Date.now() - salvo.criado >= 86400000) {
+        salvo.tentativa = crypto.randomUUID();
+        salvo.criado = Date.now();
+      }
+      rascunho.current = salvo;
+      tentativa.current = salvo.tentativa;
+      setArquivo(salvo.arquivo);
+      setLegenda(salvo.legenda);
+      if (salvo.preview && salvo.preparadoEm && Date.now() - salvo.preparadoEm < 14 * 60 * 1000) {
+        setPreview(salvo.preview);
+      }
+      setErro("Rascunho recuperado. Retome o envio quando tiver conexão.");
+    }).catch(() => {
+      if (ativo) setAvisoLocal("O rascunho só ficará disponível enquanto esta tela estiver aberta.");
+    }).finally(() => { if (ativo) setLendo(false); });
+    return () => { ativo = false; };
+  }, [chaveRascunho, vaga.versao]);
   useEffect(() => {
     if (!arquivo) return;
     const url = URL.createObjectURL(arquivo);
@@ -44,10 +84,12 @@ export function EnviarFoto({
   }
   async function preparar(file: File) {
     setBusy(true);
+    setFase("Enviando e preparando a foto…");
     setErro("");
     try {
       const r = await apiFotos<{ preview: string }>(query("preparar"), file);
       setPreview(r.preview);
+      if (rascunho.current) await guardar({ ...rascunho.current, preview: r.preview, preparadoEm: Date.now() });
     } catch (e) {
       falhou(e);
     } finally {
@@ -57,12 +99,12 @@ export function EnviarFoto({
   function escolher(file?: File) {
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) {
-      setArquivo(null);
-      setPreview("");
+
       setErro("Selecione uma foto de até 15 MB.");
       return;
     }
     tentativa.current = crypto.randomUUID();
+    void guardar({ arquivo: file, legenda, versao: vaga.versao, tentativa: tentativa.current, criado: Date.now() }, true);
     setArquivo(file);
     setPreview("");
     setLocal("");
@@ -76,6 +118,7 @@ export function EnviarFoto({
       return;
     setBusy(true);
     setErro("");
+    setFase(remover ? "Removendo foto…" : "Confirmando publicação…");
     try {
       await apiFotos(
         remover
@@ -83,6 +126,7 @@ export function EnviarFoto({
           : query("confirmar"),
         JSON.stringify({ legenda }),
       );
+      await guardar();
       await concluir();
     } catch (e) {
       falhou(e);
@@ -108,7 +152,7 @@ export function EnviarFoto({
           }}
         />
       )}
-      <fieldset disabled={busy}>
+      <fieldset disabled={busy || lendo}>
         <legend>{vaga.foto ? "Escolher outra foto" : "Escolher foto"}</legend>
         <label>
           Tirar foto
@@ -139,11 +183,16 @@ export function EnviarFoto({
         <textarea
           maxLength={500}
           value={legenda}
-          disabled={!arquivo || busy}
-          onChange={(e) => setLegenda(e.target.value)}
+          disabled={!arquivo || (busy && !!preview)}
+          onChange={(e) => {
+            const texto = e.target.value;
+            setLegenda(texto);
+            if (rascunho.current) void guardar({ ...rascunho.current, legenda: texto });
+          }}
         />
       </label>
-      {busy && <p role="status">Processando foto…</p>}
+      {busy && <p role="status">{fase}</p>}
+      {avisoLocal && <p role="status">{avisoLocal}</p>}
       {erro && <p role="alert">{erro}</p>}
       {arquivo && !preview && erro && (
         <button disabled={busy} onClick={() => preparar(arquivo)}>
@@ -154,6 +203,17 @@ export function EnviarFoto({
         <button disabled={busy} onClick={() => confirmar(false)}>
           {erro ? "Tentar novamente" : "Enviar foto"}
         </button>
+      )}
+      {arquivo && (
+        <button disabled={busy} onClick={async () => {
+          if (!window.confirm("Descartar esta seleção e a legenda do rascunho?")) return;
+          await guardar();
+          setArquivo(null);
+          setLocal("");
+          setPreview("");
+          setLegenda(vaga.legenda ?? "");
+          setErro("");
+        }}>Descartar rascunho</button>
       )}
       {vaga.foto && (
         <button disabled={busy} onClick={() => confirmar(true)}>

@@ -23,9 +23,11 @@ type Missao = {
   }[];
 };
 export function MinhaCor({
+  usuario,
   pessoas,
   minhaVaga,
 }: {
+  usuario: string;
   pessoas: Pessoa[];
   minhaVaga: number;
 }) {
@@ -102,6 +104,7 @@ export function MinhaCor({
   if (editando && missao?.cor)
     return (
       <EnviarFoto
+        chaveRascunho={usuario + ":" + editando.posicao}
         vaga={editando}
         cor={missao.cor.nome}
         voltar={voltar}
