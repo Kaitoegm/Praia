@@ -18,6 +18,8 @@ export function Entrada() {
       const r = await fetch("/api/perfil", {
         headers: convite ? { "x-convite": convite } : {},
       });
+      if (!r.headers.get("content-type")?.includes("application/json"))
+        throw Error("A lista de viajantes está indisponível no momento.");
       const dados = await r.json();
       if (!ativa) return;
       if (!r.ok) throw Error(dados.message);
@@ -55,15 +57,9 @@ export function Entrada() {
   }
   return (
     <div className="entrada-viajante">
-      <div className="hero">
-        <div>
-          <h1>
-            Férias em
-            <br />
-            família
-          </h1>
-        </div>
-      </div>
+      <header className="capa-entrada">
+        <h1><img src="/ohana-capa.webp" alt="OHANA · おはな" /></h1>
+      </header>
       <section>
         <h2>Quem é o viajante?</h2>
         <label>

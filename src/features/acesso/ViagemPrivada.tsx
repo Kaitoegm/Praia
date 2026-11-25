@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Waves, CalendarDays, Camera, Trophy, UserRound } from "lucide-react";
+import { CalendarDays, Camera, Trophy, UserRound } from "lucide-react";
+import { Marca } from "../../app/Marca";
 import { Perfil } from "./Perfil";
 import { db, type Pessoa, type Viagem } from "./client";
 import { Entrada } from "./Entrada";
@@ -26,7 +27,7 @@ export function ViagemPrivada() {
   return (
     <div className="shell">
       <div className="brand">
-        <Waves /> Férias na Praia
+        <Marca />
         {identidade && <Avisos key={identidade} id={identidade} />}
       </div>
       {identidade === undefined ? (

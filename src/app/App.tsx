@@ -1,5 +1,6 @@
+import { Marca } from "./Marca"
 import { useEffect, useState } from 'react'
-import { CalendarDays, Camera, Trophy, Waves, MapPin, Users, Sun, Clock3, Umbrella, Volleyball, Utensils, Image as Photo } from 'lucide-react'
+import { CalendarDays, Camera, Trophy, MapPin, Users, Sun, Clock3, Umbrella, Volleyball, Utensils, Image as Photo } from 'lucide-react'
 
 const tabs = [
   { path: '/agenda', label: 'Agenda', icon: CalendarDays },
@@ -35,8 +36,8 @@ function Album() {
 export function App() {
   const path = location.pathname.replace(/\/$/,'') || '/agenda'
   const current = tabs.find(tab=>tab.path===path)
-  useEffect(()=>{document.title = (current?.label ?? 'Entrada')+' · Férias na Praia'},[current])
-  return <div className="shell"><a className="skip" href="#conteudo">Ir ao conteúdo</a><div className="brand"><Waves/> Férias na Praia <span>Prévia da viagem</span></div>
-    <main id="conteudo">{path==='/agenda'?<Agenda/>:path==='/album'?<Album/>:path==='/jogos'?<Jogos/>:<header className="panel"><Umbrella/><h1>{path==='/entrar'?'Férias na Praia':'Página indisponível'}</h1><p>Explore a viagem com dados de exemplo.</p><a href="/agenda">Abrir agenda</a></header>}</main>
+  useEffect(()=>{document.title = (current?.label ?? 'Entrada')+' · OHANA'},[current])
+  return <div className="shell"><a className="skip" href="#conteudo">Ir ao conteúdo</a><div className="brand"><Marca/> <span>Prévia da viagem</span></div>
+    <main id="conteudo">{path==='/agenda'?<Agenda/>:path==='/album'?<Album/>:path==='/jogos'?<Jogos/>:<header className="panel"><Umbrella/><h1>{path==='/entrar'?'OHANA':'Página indisponível'}</h1><p>Explore a viagem com dados de exemplo.</p><a href="/agenda">Abrir agenda</a></header>}</main>
     <nav aria-label="Navegação principal">{tabs.map(({path:href,label,icon:Icon})=><a key={href} href={href} aria-current={path===href?'page':undefined}><Icon size={21}/>{label}</a>)}</nav></div>
 }

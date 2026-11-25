@@ -1,0 +1,77 @@
+:root {
+  --marinho: #103e50;
+  --mar: #096d70;
+  --papel: #fffaf0;
+  --borda: #dbcbb3;
+  --areia: #efc888 url('/areia.webp') repeat;
+  color: var(--marinho);
+  font-family: 'DM Sans', sans-serif;
+}
+body, body:has(.caderno) { background: var(--areia); }
+.shell, .shell.caderno {
+  background: linear-gradient(155deg, color-mix(in srgb, var(--tinta, #edbd75) 16%, var(--papel)), var(--papel) 55%);
+  color: var(--marinho);
+  box-shadow: 0 0 48px #79562924;
+}
+.brand, .caderno .brand {
+  background: var(--papel);
+  border-bottom: 1px solid var(--borda);
+  padding-inline: clamp(16px, 5vw, 28px);
+}
+.marca-ohana { display: inline-flex; align-items: center; gap: 8px; font: 700 1.45rem Barlow, sans-serif; letter-spacing: .065em; }
+.marca-ohana img { border-radius: 50%; }
+.shell main { padding-inline: clamp(14px, 4vw, 24px); }
+h1, h2, h3, .capa h1, .caderno .envio h2, .sorteio h2, .ampliada h3 {
+  font-family: Barlow, sans-serif;
+  font-weight: 700;
+  color: var(--marinho);
+}
+h1 { overflow-wrap: anywhere; }
+.capa-entrada, .hero, .perfil-viajante {
+  background: var(--areia);
+  border: 1px solid var(--borda);
+  border-radius: 24px;
+  overflow: hidden;
+}
+.capa-entrada h1 { margin: 0; }
+.capa-entrada img { display: block; margin: auto; max-width: 100%; width: auto; height: clamp(224px, 34vh, 320px); object-fit: contain; mask-image: linear-gradient(to right, transparent, black 18% 82%, transparent); }
+.entrada-viajante section, .perfil-viajante {
+  margin-top: 16px;
+  padding: clamp(18px, 5vw, 28px);
+  border: 1px solid var(--borda);
+  border-radius: 20px;
+  background-color: var(--papel);
+}
+.perfil-viajante { background: linear-gradient(to bottom, transparent 76px, var(--papel) 76px), var(--areia); }
+.perfil-viajante h1 { margin-top: 24px; }
+.hero > div { position: relative; min-height: 136px; padding: 20px 34% 20px 20px; background: none; isolation: isolate; }
+.hero > div::after {
+  content: ''; position: absolute; right: 3%; top: 50%; transform: translateY(-50%) rotate(5deg);
+  width: 29%; max-width: 134px; aspect-ratio: 1; background: url('/ohana-192.png') center / cover;
+  mask-image: radial-gradient(circle, black 59%, transparent 74%); z-index: -1;
+}
+.hero h1 { font-size: clamp(2rem, 8vw, 3rem); }
+.panel, .proxima, .sorteio { background: #fbd2b7; border: 1px solid var(--borda); }
+.panel.blue, .proxima { background: #d4ede4; }
+.panel.yellow { background: #ffe4a1; }
+.tile { color: var(--marinho); background: #ffc38f; }
+article, li, .empty, .ranking details { border-color: var(--borda); background-color: #fffcf6; }
+.ranking li:first-child { background-color: #fff0c8; }
+input, select, textarea, main button:not(.days button) { border-color: var(--borda); }
+main button { color: var(--marinho); background-color: #fffdf7; cursor: pointer; }
+main button:disabled { cursor: default; }
+form button, .acao-perfil, .days [aria-pressed=true], .agenda-dias [aria-pressed=true],
+.caderno main .album-abas [aria-pressed=true], .caderno main .sorteio button, .caderno .envio button:first-of-type {
+  background: var(--marinho); color: white;
+}
+a { color: var(--mar); }
+nav, .caderno nav { background: var(--papel); border-top: 1px solid var(--borda); z-index: 4; }
+nav a { color: #435e60; font-size: .84rem; }
+nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); background: #ccebe0; }
+.capa { padding-block: 30px 22px; }
+.capa small, .colecao-titulo small { color: var(--mar); }
+.shell.caderno .missao .capa { margin-inline: -4px; border-bottom: 1px solid var(--borda); margin-bottom: 18px; }
+.janela { border: 2px solid #fffdf7; box-shadow: 0 1px 4px #67574430; }
+.ampliada, .caixa-avisos { background: var(--papel); color: var(--marinho); }
+.toast-album { background: var(--marinho); }
+:focus-visible { outline-color: var(--mar); }

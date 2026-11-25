@@ -33,7 +33,7 @@ export function Perfil({
     }
   }
   return (
-    <section>
+    <section className="perfil-viajante">
       <small>Meu perfil</small>
       <h1>{pessoa.nome}</h1>
       <FotoPerfil foto={pessoa.avatar} arquivo={foto} escolher={setFoto} />
