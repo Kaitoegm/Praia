@@ -1,0 +1,50 @@
+@import '@fontsource/dm-serif-text/latin-400.css';
+@import '@fontsource/dm-sans/latin-400.css';
+@import '@fontsource/dm-sans/latin-600.css';
+
+.caderno{--papel:#fcf8f2;color:#322e2a;background:radial-gradient(ellipse at 105% 7%,color-mix(in srgb,var(--tinta) 17%,transparent),transparent 43%),radial-gradient(ellipse at -15% 70%,color-mix(in srgb,var(--tinta) 13%,transparent),transparent 60%),var(--papel);font-family:'DM Sans',sans-serif}
+body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/praia.jpg') center/cover fixed}
+.caderno .brand{background:transparent;border-bottom:1px solid #493b2e1a;font-size:.9rem;font-weight:600}
+.caderno main{padding:0 clamp(14px,4vw,24px) 102px}
+.caderno .caderno-pagina{margin:0 0 32px}
+.capa{text-align:center;padding:38px 0 24px}
+.capa small{display:block;font-size:.69rem;font-weight:600;text-transform:uppercase;letter-spacing:.21em}
+.capa h1,.caderno .envio h2,.sorteio h2,.ampliada h3{font-family:'DM Serif Text',Georgia,serif;font-weight:400}
+.capa h1{font-size:clamp(1.95rem,8.3vw,3rem);line-height:1.1;letter-spacing:-.045em;margin:8px 0}
+.capa p{color:#6b645d;font-size:.93rem;margin:0}
+.album-abas{display:flex;justify-content:center;gap:4px;padding:4px;margin:auto;width:fit-content;background:#ffffff80;border:1px solid #483b3120;border-radius:30px}
+.caderno main .album-abas button{border:0;border-radius:20px;background:transparent;display:flex;align-items:center;gap:7px;font-size:.83rem;padding:7px 14px}
+.caderno main .album-abas [aria-pressed=true],.caderno main .sorteio button,.caderno .envio button:first-of-type{background:#36352e;color:white}
+.colecao-titulo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:28px 0 14px}
+.colecao-titulo h3{display:flex;align-items:center;gap:8px;font-size:.97rem;font-weight:600}
+.colecao-titulo small{font-size:.74rem;color:#665f57}
+.gota{width:13px;height:13px;background:var(--tinta);border:1px solid #2f251e42;border-radius:50%}
+.caderno .mosaico{gap:16px clamp(6px,2vw,12px);margin:0}
+.caderno .mosaico li{display:block;aspect-ratio:auto;background:transparent;border:0;padding:0;margin:0;min-width:0}
+.caderno main button.quadro{width:100%;padding:0;background:transparent;border:0;display:block;color:inherit;cursor:pointer}
+.janela{position:relative;display:grid;place-items:center;aspect-ratio:1;overflow:hidden;border-radius:15px}
+.janela img{width:100%;height:100%;object-fit:cover}
+.pendente{background:linear-gradient(150deg,color-mix(in srgb,var(--tinta) 8%,#efeeeb),color-mix(in srgb,var(--tinta) 14%,#e9e6df));color:#796f64}
+.pendente:after{content:'';position:absolute;inset:6px;border:1px dashed #53483838;border-radius:10px}
+.caderno .mosaico .legenda,.caderno .mosaico small{display:block;margin:6px 0 0;text-align:center;font-size:.81rem;line-height:1.32;overflow-wrap:anywhere}
+.caderno .mosaico small{margin-top:2px;font-size:.7rem;color:#726a61}
+.dica-cor{margin:22px 0;padding:13px 0;border-top:1px solid #45392e24;color:#675e56;font-size:.86rem}
+.sorteio{text-align:center;padding:32px 16px;margin:24px 0;border-radius:20px;background:linear-gradient(140deg,#ffffff94,color-mix(in srgb,var(--tinta) 13%,#f8f5ed))}
+.sorteio h2{margin:12px 0 6px}.sorteio button:disabled{opacity:.55}
+.caderno .envio{margin:0;padding:24px 0;gap:12px}.caderno .envio h2{font-size:2.1rem;margin:0}
+.caderno .envio>p{margin:0 0 6px}.caderno .envio fieldset{border:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.caderno .envio legend{margin:0 0 8px}.caderno .envio fieldset label{position:relative;flex:1;min-width:120px;border-radius:12px;background:#fffaf4;border:1px solid #c9beb1;min-height:46px;display:grid;place-items:center;text-align:center;cursor:pointer;font-size:.86rem}
+.caderno .envio fieldset input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.caderno .envio fieldset label:focus-within{outline:3px solid #36757b}
+.caderno .envio>img{width:100%;object-fit:contain;background:#fff8;border-radius:15px}
+.caderno nav{background:#fbf8f2f7}.caderno nav [aria-current]{background:color-mix(in srgb,var(--tinta) 15%,#faf7f0);color:#322e2a}
+.ampliada{width:min(90vw,480px);border:0;border-radius:16px;background:#faf6ef;color:#332e28;padding:18px}
+.ampliada::backdrop{background:#211f20be}.ampliada>img{display:block;width:100%;max-height:56vh;object-fit:contain;margin:10px 0}
+.ampliada footer,.ampliada footer button{display:flex;align-items:center;justify-content:space-between}
+.avisos{position:relative;margin-left:auto}.avisos button{min-height:44px;cursor:pointer}
+.sino,.caixa-avisos header button{border:0;background:none;color:inherit;width:44px;position:relative}
+.sino i{position:absolute;width:8px;height:8px;border-radius:50%;background:#ae4f3c;right:9px;top:9px}
+.caixa-avisos{position:absolute;right:0;top:100%;z-index:8;width:min(295px,83vw);padding:16px;background:#fffcf6;box-shadow:0 8px 26px #352b2029;border:1px solid #ddd4c7;border-radius:16px;font-weight:400;max-height:65vh;overflow:auto}
+.caixa-avisos header{display:flex;align-items:center;justify-content:space-between}.caixa-avisos header h2{margin:0}
+.caixa-avisos>a{display:block;padding:12px 0;border-top:1px solid #ece4da;color:inherit}
+.toast-album{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);z-index:6;background:#35382f;color:white;display:flex;gap:8px;align-items:center;padding:12px 18px;border-radius:18px;max-width:90vw;width:max-content;font-size:.85rem}
+.shell.caderno{background:radial-gradient(ellipse at 100% 5%,color-mix(in srgb,var(--tinta) 20%,transparent),transparent 53%),radial-gradient(ellipse at 0 70%,color-mix(in srgb,var(--tinta) 14%,transparent),transparent 65%),#faf6f0}.shell.caderno .missao header{background:transparent;border:0;border-radius:0}.shell.caderno .missao .colecao-titulo h3{font-size:1rem;margin:0;gap:7px}.shell.caderno .missao .capa p{margin:8px 0 0}.shell.caderno .missao .capa h1{letter-spacing:-.035em}.shell.caderno .missao .colecao-titulo{padding:0}.shell.caderno .missao .colecao-titulo small{color:#645c54}.shell.caderno .mosaico .legenda{font-weight:400}.shell.caderno .mosaico .quadro .janela{width:100%}.shell.caderno .mosaico img{display:block}

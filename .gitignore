@@ -1,0 +1,13 @@
+node_modules/
+.agents/
+.codex-attachments/
+.vercel/
+.env.push.local
+dist/
+test-results/
+playwright-report/
+.env.local
+.praia-vapid.local
+.env.*.local
+supabase/.temp/
+supabase/.branches/

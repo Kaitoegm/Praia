@@ -1,0 +1,1 @@
+O arquivo `exemplo.heic` é a amostra pública usada pelo projeto libheif para demonstrar a leitura de HEIC. Os testes exercitam a decodificação e a geração de JPEG. [Arquivo de origem](https://github.com/strukturag/libheif/blob/master/examples/example.heic)

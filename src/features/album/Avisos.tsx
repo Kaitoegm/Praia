@@ -1,0 +1,147 @@
+import { useEffect, useRef, useState } from "react";
+import { Bell, X } from "lucide-react";
+import { db } from "../acesso/client";
+import { apiFotos } from "./fotos";
+
+type Aviso = { id: number; autor: string; arquivo: string | null };
+export function Avisos({ id }: { id: string }) {
+  const [lista, setLista] = useState<Aviso[]>([]),
+    [aberto, setAberto] = useState(false),
+    [toast, setToast] = useState(""),
+    [nota, setNota] = useState("");
+  const chave = "praia-avisos-" + id;
+  const [lido, setLido] = useState(() => Number(localStorage.getItem(chave)));
+  const ultimo = useRef<number | null>(null);
+  useEffect(() => {
+    let ativo = true,
+      ocupado = false;
+    async function atualizar() {
+      if (ocupado || document.hidden) return;
+      ocupado = true;
+      try {
+        const { data } = await db
+          .from("avisos_album")
+          .select("id,autor,arquivo")
+          .order("id", { ascending: false })
+          .limit(50);
+        if (!ativo || !data) return;
+        const recente = data[0]?.id ?? 0;
+        if (ultimo.current !== null && recente > ultimo.current) {
+          const novas = data.filter((a) => a.id > ultimo.current! && a.arquivo);
+          if (novas.length)
+            setToast(
+              novas.length === 1
+                ? novas[0].autor + " adicionou uma foto."
+                : novas.length + " fotos novas no álbum.",
+            );
+          window.dispatchEvent(new Event("album-atualizado"));
+        }
+        ultimo.current = recente;
+        setLista(data.filter((a) => a.arquivo));
+      } finally {
+        ocupado = false;
+      }
+    }
+    void atualizar();
+    const t = setInterval(atualizar, 2200);
+    document.addEventListener("visibilitychange", atualizar);
+    return () => {
+      ativo = false;
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", atualizar);
+    };
+  }, []);
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(""), 7000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+  function abrir() {
+    setAberto(!aberto);
+    if (lista.length) {
+      setLido(lista[0].id);
+      localStorage.setItem(chave, String(lista[0].id));
+    }
+  }
+  async function ativar() {
+    try {
+      if (
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window) ||
+        !("Notification" in window)
+      ) {
+        setNota(
+          "Neste navegador, acompanhe os avisos aqui. No iPhone, abra o site pela Tela de Início.",
+        );
+        return;
+      }
+      if ((await Notification.requestPermission()) !== "granted") {
+        setNota("Os avisos continuam disponíveis neste sino.");
+        return;
+      }
+      await navigator.serviceWorker.register("/avisos-sw.js");
+      const reg = await navigator.serviceWorker.ready;
+      const { chave } = await apiFotos<{ chave: string }>("?acao=push");
+      const key = Uint8Array.from(
+        atob(chave.replace(/-/g, "+").replace(/_/g, "/")),
+        (c) => c.charCodeAt(0),
+      );
+      const sub =
+        (await reg.pushManager.getSubscription()) ??
+        (await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: key,
+        }));
+      await apiFotos("?acao=push", JSON.stringify(sub));
+      setNota("Notificações ativadas neste aparelho.");
+    } catch {
+      setNota(
+        "Não foi possível ativar os avisos neste aparelho. Tente novamente.",
+      );
+    }
+  }
+  return (
+    <aside className="avisos">
+      <button
+        className="sino"
+        aria-label="Notificações"
+        aria-expanded={aberto}
+        onClick={abrir}
+      >
+        <Bell size={19} />
+        {lista.some((a) => a.id > lido) && <i />}
+      </button>
+      {aberto && (
+        <div className="caixa-avisos">
+          <header>
+            <h2>Notificações</h2>
+            <button
+              aria-label="Fechar notificações"
+              onClick={() => setAberto(false)}
+            >
+              <X size={18} />
+            </button>
+          </header>
+          <button onClick={ativar}>Ativar no aparelho</button>
+          <p role="status">{nota}</p>
+          {lista.length === 0 ? (
+            <p>As novas fotos da família aparecem aqui.</p>
+          ) : (
+            lista.map((a) => (
+              <a key={a.id} href="/album?familia=1">
+                {a.autor} adicionou uma foto.
+              </a>
+            ))
+          )}
+        </div>
+      )}
+      {toast && (
+        <a className="toast-album" role="status" href="/album?familia=1">
+          <Bell size={16} />
+          {toast}
+        </a>
+      )}
+    </aside>
+  );
+}
