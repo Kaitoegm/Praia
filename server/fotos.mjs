@@ -6,6 +6,10 @@ import { assinaturaValida, entregar, vapid } from "./avisos.mjs";
 let client;
 export function banco() {
   if (!client) {
+    if (process.env.NODE_ENV === "production" &&
+        (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+      throw new Error("Configuração do Supabase incompleta.");
+    }
     const env =
       process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
         ? {
