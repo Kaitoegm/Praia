@@ -17,6 +17,8 @@ for (const width of [320, 390, 430]) {
     }
     await page.goto('/album')
     const slot = page.getByText('Foto 9 de 9')
+    await slot.waitFor({state: "visible"})
+    await page.evaluate(() => document.fonts.ready)
     await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight))
     const photo = await slot.boundingBox()
     const nav = await page.getByRole('navigation').boundingBox()

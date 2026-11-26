@@ -1,15 +1,17 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, type RefObject } from "react";
 import { apiFotos, type VagaFoto } from "./fotos";
 
 import { lerRascunho, salvarRascunho, type Rascunho } from "./rascunhos";
 
 export function EnviarFoto({
+  camera,
   chaveRascunho,
   vaga,
   cor,
   voltar,
   concluir,
 }: {
+  camera: RefObject<HTMLInputElement | null>;
   chaveRascunho: string;
   vaga: VagaFoto;
   cor: string;
@@ -36,7 +38,7 @@ export function EnviarFoto({
   useEffect(() => {
     let ativo = true;
     lerRascunho(chaveRascunho).then(async (salvo) => {
-      if (!ativo || !salvo) return;
+      if (!ativo || !salvo || rascunho.current) return;
       if (salvo.versao !== vaga.versao) {
         await salvarRascunho(chaveRascunho);
         return;
@@ -152,13 +154,27 @@ export function EnviarFoto({
           }}
         />
       )}
-      <fieldset disabled={busy || lendo}>
+      {arquivo && <label className="legenda-postal">
+        Legenda (opcional)
+        <textarea
+          maxLength={500}
+          value={legenda}
+          disabled={!arquivo || (busy && !!preview)}
+          onChange={(e) => {
+            const texto = e.target.value;
+            setLegenda(texto);
+            if (rascunho.current) void guardar({ ...rascunho.current, legenda: texto });
+          }}
+        />
+      </label>}
+      <fieldset disabled={busy}>
         <legend>{vaga.foto ? "Escolher outra foto" : "Escolher foto"}</legend>
         <label>
           Tirar foto
           <input
             type="file"
             accept="image/*"
+            ref={camera}
             capture="environment"
             onChange={(e) => {
               escolher(e.target.files?.[0]);
@@ -178,19 +194,6 @@ export function EnviarFoto({
           />
         </label>
       </fieldset>
-      <label>
-        Legenda (opcional)
-        <textarea
-          maxLength={500}
-          value={legenda}
-          disabled={!arquivo || (busy && !!preview)}
-          onChange={(e) => {
-            const texto = e.target.value;
-            setLegenda(texto);
-            if (rascunho.current) void guardar({ ...rascunho.current, legenda: texto });
-          }}
-        />
-      </label>
       {busy && <p role="status">{fase}</p>}
       {avisoLocal && <p role="status">{avisoLocal}</p>}
       {erro && <p role="alert">{erro}</p>}
@@ -220,7 +223,7 @@ export function EnviarFoto({
           Remover foto
         </button>
       )}
-      <button disabled={busy} onClick={voltar}>
+      <button disabled={busy || lendo} onClick={voltar}>
         Voltar à coleção
       </button>
     </section>

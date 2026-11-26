@@ -54,7 +54,11 @@ export function Ranking({
   const [rows, setRows] = useState<Resultado[] | null>(null),
     [erro, setErro] = useState(""),
     [status, setStatus] = useState("");
-  const [nova, setNova] = useState(false);
+  const [nova, setNova] = useState(() => new URLSearchParams(location.search).has("nova"));
+  function voltarAoRanking() {
+    history.replaceState(null, "", "/jogos");
+    setNova(false);
+  }
   const [edicao, setEdicao] = useState<{
     rodada: string;
     vaga: number;
@@ -114,14 +118,14 @@ export function Ranking({
     );
   }
   const inscritos = pessoas.filter((p) => p.usuario_id && p.avatar);
-  if (nova)
+  if (nova && eu?.vaga === 1)
     return (
       <Rodada
         pessoas={inscritos}
         jogos={[...new Set(rows?.map((r) => r.jogo))]}
-        fechar={() => setNova(false)}
+        fechar={voltarAoRanking}
         salvo={() => {
-          setNova(false);
+          voltarAoRanking();
           setStatus("Rodada registrada.");
           void reload();
         }}
@@ -129,19 +133,13 @@ export function Ranking({
     );
   return (
     <section className="ranking">
-      <header className="panel blue">
-        <Trophy aria-hidden="true" />
-        <h2>Ranking dos jogos</h2>
-        {eu?.vaga === 1 && (
-          <button
-            onClick={() => {
-              setStatus("");
-              setNova(true);
-            }}
-          >
-            Lançar rodada
-          </button>
-        )}
+      <header className="folha-titulo placar-titulo">
+        <div>
+          <small>Jogos da família</small>
+          <h1>Ranking dos jogos</h1>
+          <p>{inscritos.length} de {pessoas.length} participantes no ranking</p>
+        </div>
+        <Trophy className="trofeu" size={40} aria-hidden="true" />
       </header>
       {erro && (
         <p role="alert">
@@ -154,16 +152,16 @@ export function Ranking({
       ) : (
         <>
           {rows.length === 0 && <p>O primeiro jogo ainda vai começar.</p>}
-          <ol aria-label="Classificação">
+          <ol className="placar" aria-label="Classificação">
             {classificar(inscritos, rows).map((p) => (
-              <li key={p.vaga}>
+              <li key={p.vaga} data-lider={p.posicao === 1 && p.total > 0}>
                 <b>{p.posicao}º</b>
                 {p.avatar?<img className="avatar-ranking" src={p.avatar} alt={'Foto de '+p.nome}/>:<span className="avatar-ranking iniciais" aria-hidden="true">{p.nome.slice(0,1)}</span>}
                 <strong>
                   {p.nome}
                   {p.vaga === eu?.vaga ? " · Você" : ""}
                 </strong>
-                <span>{p.total} pts</span>
+                <span className="pontos">{p.total} pts</span>
               </li>
             ))}
           </ol>

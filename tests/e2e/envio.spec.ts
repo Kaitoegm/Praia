@@ -114,11 +114,13 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
       { key: f.storageKey, session: f.familiar.session },
     );
     await page.goto("http://127.0.0.1:4174/album");
+    const captura = page.waitForEvent("filechooser");
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
+    const seletor = await captura;
+    expect(await seletor.element().getAttribute("capture")).toBe("environment");
+    await expect(page.getByLabel("Legenda (opcional)")).toHaveCount(0);
     await page.route("**/api/fotos?acao=preparar*", (route) => route.abort("failed"), { times: 1 });
-    await page
-      .getByLabel("Escolher da galeria")
-      .setInputFiles("public/praia.jpg");
+    await seletor.setFiles("public/praia.jpg");
     await expect(page.getByRole("alert")).toBeVisible();
     await page.getByLabel("Legenda (opcional)").fill("O mar");
     await page.reload();

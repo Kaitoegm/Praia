@@ -6,7 +6,7 @@ import {
   type FormEvent,
 } from "react";
 import { Temporal } from "@js-temporal/polyfill";
-import { CalendarDays, Clock3, MapPin } from "lucide-react";
+import { Clock3, MapPin } from "lucide-react";
 import { db, type Viagem } from "../acesso/client";
 
 type Atividade = {
@@ -102,7 +102,14 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
     );
   return (
     <section className="agenda">
-      <h2>Agenda da viagem</h2>
+      <header className="folha-titulo">
+        <div>
+          <small>{viagem.nome}</small>
+          <h1>Agenda da viagem</h1>
+          <p>{primeiroDia.toLocaleString("pt-BR", { day: "numeric", month: "short" })} — {Temporal.PlainDate.from(viagem.fim).toLocaleString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}</p>
+        </div>
+        <img src="/selo-orla.webp" width="64" height="66" alt="" />
+      </header>
       {erro ? (
         <p role="alert">
           Não foi possível atualizar a agenda.{" "}
@@ -168,14 +175,11 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
             <p className="empty">Dia livre na praia.</p>
           ) : (
             lista.map((a) => (
-              <article key={a.id}>
-                <CalendarDays aria-hidden="true" />
+              <article key={a.id} className="atividade" data-cancelada={a.cancelada}>
+                <time dateTime={a.inicio}>{hora(a.inicio, viagem.fuso)}</time>
                 <div>
-                  <small>
-                    {hora(a.inicio, viagem.fuso)}
-                    {a.termino && " — " + dataHora(a.termino, viagem.fuso)}
-                  </small>
                   <h3>{a.titulo}</h3>
+                  {a.termino && <small>Até {dataHora(a.termino, viagem.fuso)}</small>}
                   {a.cancelada && <strong>Cancelada</strong>}
                   {a.local && (
                     <span className="location">

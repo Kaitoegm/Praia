@@ -1,3 +1,5 @@
+import { flushSync } from "react-dom";
+import { chavesDosRascunhos } from "./rascunhos";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Camera,
@@ -39,6 +41,8 @@ export function MinhaCor({
   const [aberta, setAberta] = useState<string | null>(null);
   const [compartilhadas, setCompartilhadas] = useState<VagaFoto[]>([]);
   const seq = useRef(0);
+  const camera = useRef<HTMLInputElement>(null);
+  const [rascunhos, setRascunhos] = useState<IDBValidKey[]>([]);
   const [fotos, setFotos] = useState<VagaFoto[]>([]);
   const [editando, setEditando] = useState<VagaFoto | null>(null);
   const carregar = useCallback(async () => {
@@ -47,12 +51,16 @@ export function MinhaCor({
     let detalhes: VagaFoto[] = [];
     if (data) {
       try {
-        const [proprias, grupo] = await Promise.all([
+        const [proprias, grupo, pendentes] = await Promise.all([
           data.cor ? apiFotos<VagaFoto[]>() : Promise.resolve([]),
           apiFotos<VagaFoto[]>("?colecao=familia"),
+          chavesDosRascunhos(usuario).catch(() => []),
         ]);
         detalhes = proprias;
-        if (n === seq.current) setCompartilhadas(grupo);
+        if (n === seq.current) {
+          setCompartilhadas(grupo);
+          setRascunhos(pendentes);
+        }
       } catch {
         if (seq.current === n)
           setErro("Não foi possível carregar as fotos. Tente atualizar.");
@@ -66,7 +74,7 @@ export function MinhaCor({
       setFotos(detalhes);
       setErro("");
     }
-  }, []);
+  }, [usuario]);
   useEffect(() => {
     void carregar();
     const atualizar = () => {
@@ -104,6 +112,7 @@ export function MinhaCor({
   if (editando && missao?.cor)
     return (
       <EnviarFoto
+        camera={camera}
         chaveRascunho={usuario + ":" + editando.posicao}
         vaga={editando}
         cor={missao.cor.nome}
@@ -180,9 +189,13 @@ export function MinhaCor({
                             v.posicao
                           : "Abrir foto " + v.posicao + " de 9"
                       }
-                      onClick={() =>
-                        familia ? setAberta(chave(v)) : setEditando(v)
-                      }
+                      onClick={() => {
+                        if (familia) return setAberta(chave(v));
+                        if (v.foto || rascunhos.includes(usuario + ":" + v.posicao)) return setEditando(v);
+                        // O seletor precisa abrir ainda no gesto de toque, inclusive no Safari.
+                        flushSync(() => setEditando(v));
+                        camera.current?.click();
+                      }}
                     >
                       <span
                         className={

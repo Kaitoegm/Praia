@@ -20,7 +20,9 @@ test("organizador joga, revisa e corrige uma rodada no celular", async ({
     await expect(lista.getByRole("listitem")).toHaveCount(2);
     await expect(lista.getByRole("img", { name: "Foto de Bia" })).toBeVisible();
     await expect(lista.getByText("Caio")).toHaveCount(0);
-    await page.getByRole("button", { name: "Lançar rodada" }).click();
+    await expect(page.getByRole("button", { name: "Lançar rodada" })).toHaveCount(0);
+    await page.getByRole("link", {name: "Configurar viagem"}).click();
+    await page.getByRole("link", {name: "Registrar pontos de um jogo"}).click();
     await page.getByLabel("Jogo", { exact: true }).fill("Frescobol");
     await page.getByLabel("Nome da rodada").fill("Final");
     for (const [nome, pontos] of [
@@ -46,6 +48,21 @@ test("organizador joga, revisa e corrige uma rodada no celular", async ({
     ).toContainText("Ana · Você9 pts");
     await expect(page.getByText("Ana · 0 → 9 pts")).toBeVisible();
     await page.evaluate(() => scrollTo(0, 0));
+    // Confira também a composição do placar cheio em telas estreitas.
+    await page.route("**/rest/v1/participantes?*", async (route) => {
+      const jogadores = Array.from({ length: 13 }, (_, i) => ({
+        vaga: i + 1, nome: i === 12 ? "Nome de participante mais comprido" : "Viajante " + (i + 1),
+        avatar: "/ohana-192.png", usuario_id: i === 0 ? org.session.user.id : crypto.randomUUID(),
+      }));
+      await route.fulfill({ json: jogadores });
+    });
+    await page.reload();
+    await expect(lista.getByRole("listitem")).toHaveCount(13);
+    for (const width of [320, 390, 430]) {
+      await page.setViewportSize({ width, height: 800 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    }
+    await page.setViewportSize({ width: 390, height: 800 });
     await page.screenshot({ path: test.info().outputPath("ranking.png") });
   } finally {
     await limpar();

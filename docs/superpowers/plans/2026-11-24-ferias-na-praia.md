@@ -1,5 +1,8 @@
 # Férias na Praia · Plano de implementação
 
+> **Proposta original de 24/11/2026.** Para desenvolver o OHANA, use o [roteiro atualizado](./2026-11-24-roteiro-de-implementacao-para-ia.md). Ele incorpora o grupo de 13 pessoas, o sorteio no cadastro e as decisões posteriores sobre o álbum e a publicação.
+
+
 **Objetivo.** Pelo navegador do celular, cada familiar deve conseguir descobrir o próximo compromisso, conferir os pontos dos jogos e contribuir com nove fotos inspiradas na cor que tirou. São nove participantes, incluindo quem organiza a viagem. Ao final, a família terá um álbum digital com **nove coleções de nove fotos, 81 no total**.
 
 **Primeira versão proposta.** Um site privado em português, acessado por link, com três abas fixas: **Agenda**, **Jogos** e **Álbum**. A aba Álbum reúne a missão individual e a coleção da família. A mesma conta permite ao organizador competir, enviar suas fotos e administrar a viagem.

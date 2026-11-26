@@ -46,7 +46,9 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     await outro.goto(base + "/entrar#convite=" + token);
     await expect(outro.locator('option[value="3"]')).toBeDisabled();
     await expect(outro.locator('option[value="1"]')).toBeDisabled();
-    await p.getByRole("button", { name: "Sair da conta" }).click();
+    await expect(p.getByRole("button", { name: "Sair da conta" })).toHaveCount(0);
+    await p.evaluate((key) => localStorage.removeItem(key), f.storageKey);
+    await p.goto(base + "/entrar");
     await p.getByLabel("Seu nome").selectOption("3");
     await p.getByRole("button", { name: "Entrar na viagem" }).click();
     await expect(

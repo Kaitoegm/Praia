@@ -54,3 +54,13 @@ export async function salvarRascunho(chave: string, valor?: Rascunho, novaFoto =
     tx.onabort = () => reject(tx.error);
   });
 }
+
+export async function chavesDosRascunhos(usuario: string): Promise<IDBValidKey[]> {
+  const db = await banco();
+  return new Promise((resolve, reject) => {
+    const faixa = IDBKeyRange.bound(usuario + ":", usuario + ":\uffff");
+    const req = db.transaction("rascunhos").objectStore("rascunhos").getAllKeys(faixa);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}

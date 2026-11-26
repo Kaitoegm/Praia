@@ -90,18 +90,6 @@ function Area({ id }: { id: string }) {
           <ConfigurarViagem viagem={viagem} pessoas={pessoas} reload={reload} />
         ) : (
           <>
-            {path !== "/album" && (
-              <header className="hero">
-                <div>
-                  <h1>{viagem.nome}</h1>
-                  <span>
-                    {[viagem.inicio, viagem.fim]
-                      .map((d) => d.split("-").reverse().join("/"))
-                      .join(" — ")}
-                  </span>
-                </div>
-              </header>
-            )}
             {path === "/agenda" || path === "/" ? (
               <Agenda viagem={viagem} admin={eu?.vaga === 1} />
             ) : path === "/jogos" ? (
@@ -121,22 +109,6 @@ function Area({ id }: { id: string }) {
             {eu?.vaga === 1 && <a href="/configurar">Configurar viagem</a>}
           </>
         )}
-        <p>
-          <button
-            onClick={async () => {
-              try {
-                const registro =
-                  await navigator.serviceWorker?.getRegistration();
-                const sub = await registro?.pushManager?.getSubscription();
-                await sub?.unsubscribe();
-              } finally {
-                await db.auth.signOut({ scope: "local" });
-              }
-            }}
-          >
-            Sair da conta
-          </button>
-        </p>
       </main>
       <nav aria-label="Navegação principal">
         {abas.map(({ path: href, label, Icon }) => (

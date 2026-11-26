@@ -118,3 +118,74 @@ nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); backgro
   border: 1px solid #153e5050;
   background: var(--tinta);
 }
+
+.agenda, .ranking { margin-top: 0; }
+.folha-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 18px;
+  padding: 12px 0 18px;
+  border-bottom: 1px solid var(--borda);
+}
+.folha-titulo small { font-size: .76rem; letter-spacing: .07em; color: var(--mar); }
+.folha-titulo h1 { margin: 5px 0; font: 400 clamp(2rem,8vw,2.8rem)/1.07 'DM Serif Text',Georgia,serif; }
+.folha-titulo p { margin: 0; font-size: .9rem; }
+.folha-titulo img { flex: none; width: clamp(48px,14vw,66px); height: auto; transform: rotate(5deg); }
+.placar-titulo .trofeu { flex: none; box-sizing: content-box; padding: 12px; border-radius: 50%; background: #fae4ac; color: #674717; }
+.agenda .proxima { border-left: 4px solid var(--mar); padding: 14px 16px; overflow-wrap: anywhere; }
+.agenda .proxima h3 { margin-block: 4px; }
+.agenda-dias { gap: 4px; }
+.agenda .agenda-dias button { flex: 1 0 44px; min-width: 44px; padding: 6px 2px; }
+.agenda .atividade { align-items: start; gap: 12px; }
+.atividade time { font-variant-numeric: tabular-nums; color: var(--mar); font-weight: 700; padding: 2px 10px 2px 0; border-right: 2px solid #e4c58e; }
+.atividade h3 { margin: 0 0 5px; }
+.atividade[data-cancelada=true] h3 { text-decoration: line-through; }
+.ranking .placar { border: 1px solid var(--borda); border-radius: 16px; overflow: hidden; background: var(--papel); }
+.ranking .placar li {
+  display: grid;
+  grid-template-columns: 2em 36px minmax(0,1fr) auto;
+  gap: 8px; margin: 0; padding: 9px clamp(7px,2vw,12px);
+  align-items: center; background: transparent; border: 0; border-radius: 0;
+}
+.ranking .placar li + li { border-top: 1px solid #e9dfcc; }
+.ranking .placar li[data-lider=true] { background: #fff0c8; }
+.placar b, .placar .pontos { font-variant-numeric: tabular-nums; }
+.placar b { text-align: center; }
+.placar .pontos { font-weight: 600; font-size: .9rem; }
+.ranking > button { background: var(--marinho); color: white; }
+
+.caderno .legenda-postal textarea {
+  color: var(--marinho);
+  background: var(--papel);
+  border-color: var(--borda);
+  padding: 12px 14px;
+  font: 400 1.15rem/1.45 'DM Serif Text', Georgia, serif;
+}
+.shell.caderno .mosaico .ocupada + .legenda,
+.ampliada h3 {
+  font-family: 'DM Serif Text', Georgia, serif;
+  font-weight: 400;
+}
+
+/* Espaço para tocar e ler com o tamanho de texto escolhido no celular. */
+@media (max-width: 580px) {
+  :root { font-size: 100%; }
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid > li { min-width: 0; }
+  .shell nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .shell nav a { width: auto; min-width: 0; overflow-wrap: anywhere; }
+  .shell nav:has(> a:last-child:nth-child(3)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shell main { padding-bottom: calc(5.75rem + env(safe-area-inset-bottom)); }
+  .agenda .agenda-dias button { flex-basis: max(44px, 3em); }
+  .colecao-titulo, .ampliada footer { flex-wrap: wrap; gap: 8px; }
+  .ampliada { max-height: calc(100dvh - 32px); overflow-y: auto; overflow-wrap: anywhere; }
+  .ampliada footer button { min-height: 44px; }
+  .ampliada > button:first-child { min-width: 44px; min-height: 44px; }
+  .album-abas { max-width: 100%; }
+  .shell main > a[href="/configurar"] { display: inline-flex; align-items: center; min-height: 44px; }
+}
