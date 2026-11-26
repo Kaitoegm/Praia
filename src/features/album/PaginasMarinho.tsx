@@ -10,10 +10,10 @@ export function PaginasMarinho({ fotos, abrir, pessoal, memoria }: {
   pessoal: boolean;
   memoria: RefObject<number>;
 }) {
-  const { livro, pagina, virar, eventos } = useVirada(memoria);
+  const { livro, folha, sombra, pagina, virar, eventos } = useVirada(memoria);
   return <section aria-label="Álbum azul-marinho">
     <div className="marinho-livro" ref={livro} data-pagina={pagina} {...eventos}>
-      {[1, 2].map(n => <div className="marinho-folha" data-ativa={n === pagina} inert={n !== pagina} key={n} aria-label={`Página ${n}`}>
+      {[1, 2].map(n => <div className="marinho-folha" ref={n === pagina ? folha : undefined} data-ativa={n === pagina} inert={n !== pagina} key={n} aria-label={`Página ${n}`}>
         {molduras.map((m, i) => {
           if (m.pagina !== n) return null;
           const foto = fotos.find(f => f.posicao === i + 1);
@@ -28,6 +28,7 @@ export function PaginasMarinho({ fotos, abrir, pessoal, memoria }: {
           </button>;
         })}
         <img className="marinho-arte" src={`/album/azul-marinho/${n}.webp`} width="688" height="768" alt="" draggable={false}/>
+        <span className="marinho-sombra" ref={n === pagina ? sombra : undefined} aria-hidden="true" />
       </div>)}
     </div>
     <div className="marinho-controles">

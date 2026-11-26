@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { db } from "./client";
 import { FotoPerfil } from "./FotoPerfil";
 type Opcao = { vaga: number; nome: string; disponivel: boolean; meu: boolean };
-export function Entrada() {
+export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => void }) {
   const [lista, setLista] = useState<Opcao[]>([]),
     [vaga, setVaga] = useState(""),
     [foto, setFoto] = useState<File | null>(null),
@@ -69,6 +69,7 @@ export function Entrada() {
       const data = await r.json();
       if (!r.ok) throw Error(data.message);
       if (foto && ["/", "/entrar"].includes(location.pathname)) history.replaceState(null, "", "/album");
+      if (data.primeiroPerfil) primeiroPerfil(data.primeiroPerfil);
       const auth = await db.auth.verifyOtp({
         type: "magiclink",
         token_hash: data.token_hash,

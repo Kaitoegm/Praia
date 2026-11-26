@@ -9,9 +9,20 @@ import { MinhaCor } from "../album/MinhaCor";
 import { Avisos } from "../album/Avisos";
 import { ConfigurarViagem } from "../viagem/ConfigurarViagem";
 
+import { RoletaCor } from "./RoletaCor";
+
 const Agenda = lazy(() => import("../agenda/Agenda").then(m => ({ default: m.Agenda })));
 
 export function ViagemPrivada() {
+  const [sorteio, setSorteio] = useState<string | null>(() => sessionStorage.getItem("ohana-primeira-cor"));
+  function primeiroPerfil(id: string) {
+    sessionStorage.setItem("ohana-primeira-cor", id);
+    setSorteio(id);
+  }
+  function continuar() {
+    sessionStorage.removeItem("ohana-primeira-cor");
+    setSorteio(null);
+  }
   const [identidade, setIdentidade] = useState<string | null | undefined>(
     undefined,
   );
@@ -33,11 +44,13 @@ export function ViagemPrivada() {
       </div>
       {identidade === undefined ? (
         <main>Carregando…</main>
+      ) : identidade && sorteio === identidade ? (
+        <RoletaCor continuar={continuar} />
       ) : identidade ? (
         <Area key={identidade} id={identidade} />
       ) : (
         <main>
-          <Entrada />
+          <Entrada primeiroPerfil={primeiroPerfil} />
         </main>
       )}
     </div>

@@ -49,12 +49,12 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 .toast-album{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);z-index:6;background:#35382f;color:white;display:flex;gap:8px;align-items:center;padding:12px 18px;border-radius:18px;max-width:90vw;width:max-content;font-size:.85rem}
 .shell.caderno{background:radial-gradient(ellipse at 100% 5%,color-mix(in srgb,var(--tinta) 20%,transparent),transparent 53%),radial-gradient(ellipse at 0 70%,color-mix(in srgb,var(--tinta) 14%,transparent),transparent 65%),#faf6f0}.shell.caderno .missao header{background:transparent;border:0;border-radius:0}.shell.caderno .missao .colecao-titulo h3{font-size:1rem;margin:0;gap:7px}.shell.caderno .missao .capa p{margin:8px 0 0}.shell.caderno .missao .capa h1{letter-spacing:-.035em}.shell.caderno .missao .colecao-titulo{padding:0}.shell.caderno .missao .colecao-titulo small{color:#645c54}.shell.caderno .mosaico .legenda{font-weight:400}.shell.caderno .mosaico .quadro .janela{width:100%}.shell.caderno .mosaico img{display:block}
 
-.marinho-livro { position:relative; aspect-ratio:688/768; overflow:hidden; perspective:1400px; border-radius:6px; touch-action:pan-y pinch-zoom; user-select:none; }
+.marinho-livro { position:relative; aspect-ratio:688/768; overflow:hidden; border-radius:6px; touch-action:pan-y pinch-zoom; user-select:none; }
 .marinho-folha { position:absolute; inset:0; background:#ece9df; isolation:isolate; overflow:hidden; }
-.marinho-folha[data-ativa=true] { z-index:2; transform-origin:right center; transform:rotateY(var(--giro,0deg)); backface-visibility:hidden; }
+.marinho-folha[data-ativa=true] { z-index:2; transform-origin:right center; transform:rotateY(0deg); backface-visibility:hidden; }
 .marinho-livro[data-pagina="2"] .marinho-folha[data-ativa=true] { transform-origin:left center; }
-.marinho-folha::after { content:""; position:absolute; inset:0; pointer-events:none; z-index:2; background:linear-gradient(to right,transparent,#081d2e); opacity:var(--sombra,0); }
-.marinho-livro[data-pagina="2"] .marinho-folha::after { background:linear-gradient(to left,transparent,#081d2e); }
+.marinho-sombra { position:absolute; inset:0; pointer-events:none; z-index:2; background:linear-gradient(to right,transparent,#081d2e); opacity:0; }
+.marinho-livro[data-pagina="2"] .marinho-sombra { background:linear-gradient(to left,transparent,#081d2e); }
 .marinho-arte { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
 .shell.caderno .marinho-folha button.marinho-foto { display:grid; place-items:center; position:absolute; padding:0; margin:0; min-height:0; min-width:0; border:0; border-radius:0; overflow:hidden; color:#516471; background:transparent; }
 .marinho-foto img { width:100%; height:100%; object-fit:cover; }

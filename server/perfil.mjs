@@ -148,7 +148,7 @@ export async function perfil(req, res) {
     });
     if (r.error || !r.data)
       throw erro(409, "Não foi possível ocupar esta vaga. Atualize a lista.");
-    return reply(200, { token_hash: login.data.properties.hashed_token });
+    return reply(200, { token_hash: login.data.properties.hashed_token, primeiroPerfil: foto ? login.data.user.id : null });
   } catch (e) {
     reply(Number(e.status) || 503, {
       message: e.status ? e.message : "Não foi possível abrir o perfil.",

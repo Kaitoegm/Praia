@@ -30,6 +30,12 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     ).toBeDisabled();
     await p.getByLabel("Escolher da galeria").setInputFiles("public/praia.jpg");
     await p.getByRole("button", { name: "Entrar na viagem" }).click();
+    await expect(p.getByRole("heading",{name:"Sua cor da viagem"})).toBeVisible();
+    await expect(p.locator(".sorteio-disco canvas")).toBeVisible();
+    await p.getByRole("button",{name:"Continuar na viagem"}).waitFor();
+    const corRevelada = await p.locator(".sorteio-entrada [role=status]").innerText();
+    await p.getByRole("button",{name:"Continuar na viagem"}).click();
+    await expect(p.locator(".postal-cor h1")).toContainText(corRevelada);
     await expect(p).toHaveURL(/\/album$/);
     await expect(p.getByRole("heading", {name: /^Sua cor é .+/})).toBeVisible();
     await p.getByRole("link", { name: "Jogos", exact: true }).click();

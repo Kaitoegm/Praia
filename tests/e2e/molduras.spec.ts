@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { prepararJogos } from "../fixtures/jogos";
 
-test("as nove molduras do marinho conservam a página e o formato", async ({ page }) => {
+test.use({hasTouch:true, isMobile:true});
+
+test("as nove molduras do marinho conservam a página e o formato", async ({ page, browserName }) => {
   const f = await prepararJogos();
   try {
     await page.setViewportSize({width:390,height:844});
@@ -21,10 +23,35 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
       await page.mouse.move(x + caixa.width * distancia,y,{steps:8});
       await page.mouse.up();
     }
+    // A borda livre deve seguir o dedo mesmo no primeiro quinto da virada.
+    await page.mouse.move(x,y);
+    await page.mouse.down();
+    await page.mouse.move(x + caixa.width * .2,y,{steps:8});
+    const folha = livro.locator('[data-ativa="true"]');
+    await expect.poll(async () => (await folha.boundingBox())!.x - caixa.x)
+      .toBeCloseTo(caixa.width * .2, -1);
+    await page.mouse.move(x,y,{steps:5});
+    await page.mouse.up();
     await arrastar(.08);
     await expect(page.getByText("Página 1 de 2")).toBeVisible();
     await arrastar(.50);
     await expect(page.getByText("Página 2 de 2")).toBeVisible();
+    if (browserName === "chromium") {
+      const cdp = await page.context().newCDPSession(page);
+      const tocar = (type: "touchStart" | "touchMove" | "touchEnd", pos?: number) =>
+        cdp.send("Input.dispatchTouchEvent", {type,touchPoints:pos === undefined ? [] : [{x:caixa.x+caixa.width*pos,y}]});
+      await tocar("touchStart", .74);
+      await tocar("touchMove", .60);
+      await tocar("touchMove", .22);
+      await tocar("touchEnd");
+      await expect(page.getByText("Página 1 de 2")).toBeVisible();
+      await tocar("touchStart", .28);
+      await tocar("touchMove", .45);
+      await tocar("touchMove", .78);
+      await tocar("touchEnd");
+      await expect(page.getByText("Página 2 de 2")).toBeVisible();
+      await cdp.detach();
+    }
     await page.emulateMedia({reducedMotion:"reduce"});
     await page.getByRole("button",{name:"Página anterior"}).click();
     await expect(page.getByText("Página 1 de 2")).toBeVisible();
