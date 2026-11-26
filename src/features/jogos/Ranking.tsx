@@ -56,7 +56,7 @@ export function Ranking({
     [status, setStatus] = useState("");
   const [nova, setNova] = useState(() => new URLSearchParams(location.search).has("nova"));
   function voltarAoRanking() {
-    history.replaceState(null, "", "/jogos");
+    history.replaceState(null, "", "/ranking");
     setNova(false);
   }
   const [edicao, setEdicao] = useState<{

@@ -1,4 +1,5 @@
 import { randomBytes, createHash } from "node:crypto";
+import { recuperarAparelho } from "./recuperar-aparelho.mjs";
 import sharp from "sharp";
 import { banco, dados } from "./fotos.mjs";
 import { processar, limite } from "./imagens.mjs";
@@ -46,13 +47,16 @@ export async function perfil(req, res) {
       (req.headers.cookie ?? "").split(";").map((s) => s.trim().split("=")),
     );
     const convite = req.headers["x-convite"] || cookies.praia_convite;
-    if (typeof convite !== "string" || !/^\w{64}$/.test(convite))
+    if (convite && (typeof convite !== "string" || !/^\w{64}$/.test(convite)))
       throw erro(403, "Abra o convite da viagem para escolher seu nome.");
-    const c = await db
+    // Identificador do convite familiar da viagem publicada (sem permissão administrativa).
+    const familia = "295f195b8c8ec611e30533fadd4f8a687bd899b4a9315d784fb29eb5da37de50";
+    let consulta = db
       .from("convites_viajante")
       .select("*")
-      .eq("hash", hash(convite))
-      .single();
+      .eq("hash", convite ? hash(convite) : familia);
+    if (!convite) consulta = consulta.eq("organizador", false);
+    const c = await consulta.single();
     if (c.error) {
       if (c.error.code === "PGRST116") throw erro(403, "Convite indisponível.");
       console.error("Consulta do convite falhou", {
@@ -63,6 +67,8 @@ export async function perfil(req, res) {
       throw erro(503, "O cadastro está temporariamente indisponível.");
     }
     const device = cookies.praia_aparelho;
+    if (new URL(req.url, "http://localhost").searchParams.has("recuperar"))
+      return await recuperarAparelho(req, res, db, c.data.viagem_id, device);
     if (req.method === "GET") {
       const chave = /^[a-f0-9]{64}$/.test(device ?? "")
         ? device
@@ -72,7 +78,7 @@ export async function perfil(req, res) {
         (req.socket.encrypted || req.headers["x-forwarded-proto"]==="https" ? "; Secure" : "");
       res.setHeader("Set-Cookie", [
         "praia_aparelho=" + chave + attrs,
-        "praia_convite=" + convite + attrs,
+        ...(convite ? ["praia_convite=" + convite + attrs] : []),
       ]);
       const r = await db
         .from("participantes")
@@ -88,12 +94,12 @@ export async function perfil(req, res) {
         200,
         r.data.map((p) => {
           const dono = d.data.find((a) => a.vaga === p.vaga);
+          const meu = Boolean(dono && (dono.hash === hash(chave) || (p.vaga === 1 && c.data.organizador)));
           return {
             ...p,
-            meu: dono?.hash === hash(chave),
+            meu,
             disponivel:
-              (p.vaga !== 1 || c.data.organizador) &&
-              (!dono || dono.hash === hash(chave)),
+              meu || (!dono && (p.vaga !== 1 || c.data.organizador)),
           };
         }),
       );
@@ -102,8 +108,6 @@ export async function perfil(req, res) {
     const pos = Number(
       new URL(req.url, "http://localhost").searchParams.get("vaga"),
     );
-    if (pos === 1 && !c.data.organizador)
-      throw erro(403, "Esta vaga é do organizador.");
     const p = await db
       .from("participantes")
       .select("email,usuario_id")
@@ -116,7 +120,10 @@ export async function perfil(req, res) {
       .select("hash")
       .match({ viagem_id: c.data.viagem_id, vaga: pos })
       .maybeSingle();
-    if (d.error || (d.data && d.data.hash !== hash(device)))
+    if (pos === 1 && !c.data.organizador && d.data?.hash !== hash(device))
+      throw erro(403, "Esta vaga é do organizador.");
+    const acessoJuan = pos === 1 && c.data.organizador && d.data && p.data.usuario_id;
+    if (d.error || (d.data && d.data.hash !== hash(device) && !acessoJuan))
       throw erro(409, "Este nome já foi cadastrado.");
     const foto = d.data ? null : await retrato(req);
     if (!p.data.usuario_id)
@@ -130,6 +137,8 @@ export async function perfil(req, res) {
       email: p.data.email,
     });
     if (login.error) throw erro(503, "Não foi possível iniciar a sessão.");
+    if (acessoJuan && login.data.user.id === p.data.usuario_id)
+      return reply(200, { token_hash: login.data.properties.hashed_token });
     const r = await db.rpc("assumir_perfil", {
       viagem: c.data.viagem_id,
       pos,

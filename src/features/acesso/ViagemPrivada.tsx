@@ -67,10 +67,10 @@ function Area({ id }: { id: string }) {
     return () => document.removeEventListener('visibilitychange', atualizar);
   }, []);
   const eu = pessoas.find((p) => p.usuario_id === id);
-  const path = location.pathname;
+  const path = location.pathname === "/jogos" ? "/ranking" : location.pathname;
   const abas = [
     { path: "/agenda", label: "Agenda", Icon: CalendarDays },
-    { path: "/jogos", label: "Jogos", Icon: Trophy },
+    { path: "/ranking", label: "Jogos", Icon: Trophy },
     { path: "/album", label: "Álbum", Icon: Camera },
     { path: "/perfil", label: "Perfil", Icon: UserRound },
   ];
@@ -92,7 +92,7 @@ function Area({ id }: { id: string }) {
           <>
             {path === "/agenda" || path === "/" ? (
               <Agenda viagem={viagem} admin={eu?.vaga === 1} />
-            ) : path === "/jogos" ? (
+            ) : path === "/ranking" ? (
               <Ranking pessoas={pessoas} eu={eu} fuso={viagem.fuso} />
             ) : path === "/album" ? (
               <MinhaCor

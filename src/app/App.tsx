@@ -4,7 +4,7 @@ import { CalendarDays, Camera, Trophy, MapPin, Users, Sun, Clock3, Umbrella, Vol
 
 const tabs = [
   { path: '/agenda', label: 'Agenda', icon: CalendarDays },
-  { path: '/jogos', label: 'Jogos', icon: Trophy },
+  { path: '/ranking', label: 'Jogos', icon: Trophy },
   { path: '/album', label: 'Álbum', icon: Camera },
 ]
 const days = ['Sáb', 'Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex']
@@ -38,6 +38,6 @@ export function App() {
   const current = tabs.find(tab=>tab.path===path)
   useEffect(()=>{document.title = (current?.label ?? 'Entrada')+' · OHANA'},[current])
   return <div className="shell"><a className="skip" href="#conteudo">Ir ao conteúdo</a><div className="brand"><Marca/> <span>Prévia da viagem</span></div>
-    <main id="conteudo">{path==='/agenda'?<Agenda/>:path==='/album'?<Album/>:path==='/jogos'?<Jogos/>:<header className="panel"><Umbrella/><h1>{path==='/entrar'?'OHANA':'Página indisponível'}</h1><p>Explore a viagem com dados de exemplo.</p><a href="/agenda">Abrir agenda</a></header>}</main>
+    <main id="conteudo">{path==='/agenda'?<Agenda/>:path==='/album'?<Album/>:path==='/ranking'?<Jogos/>:<header className="panel"><Umbrella/><h1>{path==='/entrar'?'OHANA':'Página indisponível'}</h1><p>Explore a viagem com dados de exemplo.</p><a href="/agenda">Abrir agenda</a></header>}</main>
     <nav aria-label="Navegação principal">{tabs.map(({path:href,label,icon:Icon})=><a key={href} href={href} aria-current={path===href?'page':undefined}><Icon size={21}/>{label}</a>)}</nav></div>
 }

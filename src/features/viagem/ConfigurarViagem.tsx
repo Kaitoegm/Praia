@@ -51,7 +51,7 @@ export function ConfigurarViagem({
         ))}
         <button disabled={busy}>Salvar viagem</button>
       </form>
-      <a href="/jogos?nova">Registrar pontos de um jogo</a>
+      <a href="/ranking?nova">Registrar pontos de um jogo</a>
       <section>
         <h2>Participantes · {pessoas.filter((p) => p.usuario_id).length}/{pessoas.length}</h2>
         <ol>

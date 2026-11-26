@@ -15,7 +15,7 @@ test("texto ampliado e controles de toque nas telas da viagem", async ({ browser
     ] }));
     for (const width of [320, 390, 430]) {
       await page.setViewportSize({width, height: 680});
-      for (const [rota, titulo] of [["agenda","Agenda da viagem"],["jogos","Ranking dos jogos"],["album","Minha coleção"]]) {
+      for (const [rota, titulo] of [["agenda","Agenda da viagem"],["ranking","Ranking dos jogos"],["album","Minha coleção"]]) {
         await page.goto("http://127.0.0.1:4174/" + rota);
         await expect(page.getByRole("heading", {name: titulo, exact:true})).toBeVisible({timeout:15000});
         await page.addStyleTag({content:"html { font-size: 200% !important; }"});

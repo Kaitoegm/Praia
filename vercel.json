@@ -2,10 +2,11 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [{ "source": "/jogos", "destination": "/ranking", "permanent": true }],
   "rewrites": [
     { "source": "/entrar", "destination": "/index.html" },
     { "source": "/agenda", "destination": "/index.html" },
-    { "source": "/jogos", "destination": "/index.html" },
+    { "source": "/ranking", "destination": "/index.html" },
     { "source": "/album", "destination": "/index.html" },
     { "source": "/configurar", "destination": "/index.html" },
     { "source": "/perfil", "destination": "/index.html" }

@@ -7,7 +7,7 @@ for (const width of [320, 390, 430]) {
     await page.getByRole('link', {name:'Abrir agenda'}).click()
     await page.getByRole('button', {name:'Dom 17'}).click()
     await expect(page.getByText('Dia livre na praia.')).toBeVisible()
-    for (const [label, path] of [['Jogos','/jogos'], ['Álbum','/album'], ['Agenda','/agenda']]) {
+    for (const [label, path] of [['Jogos','/ranking'], ['Álbum','/album'], ['Agenda','/agenda']]) {
       const link = page.getByRole('link', {name:label,exact:true})
       await link.focus()
       await page.keyboard.press('Enter')
