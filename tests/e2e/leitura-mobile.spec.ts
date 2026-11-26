@@ -10,8 +10,8 @@ test("texto ampliado e controles de toque nas telas da viagem", async ({ browser
       {key: f.storageKey, session: f.familiar.session});
     const page = await ctx.newPage();
     await page.route("**/api/fotos?colecao=familia", route => route.fulfill({ json: [
-      { vaga: 1, posicao: 1, versao: 1, foto: "http://127.0.0.1:4174/praia.jpg", mini: "http://127.0.0.1:4174/praia.jpg", legenda: "Fim de tarde na praia" },
-      { vaga: 2, posicao: 2, versao: 1, foto: "http://127.0.0.1:4174/praia.jpg", mini: "http://127.0.0.1:4174/praia.jpg", legenda: "Maré baixa" },
+      { cor:"Amarelo", vaga: 1, posicao: 1, versao: 1, foto: "http://127.0.0.1:4174/praia.jpg", mini: "http://127.0.0.1:4174/praia.jpg", legenda: "Fim de tarde na praia" },
+      { cor:"Laranja", vaga: 2, posicao: 2, versao: 1, foto: "http://127.0.0.1:4174/praia.jpg", mini: "http://127.0.0.1:4174/praia.jpg", legenda: "Maré baixa" },
     ] }));
     for (const width of [320, 390, 430]) {
       await page.setViewportSize({width, height: 680});

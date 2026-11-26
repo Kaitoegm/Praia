@@ -2,7 +2,7 @@ import { flushSync } from "react-dom";
 import { useEffect, useRef, useState, type RefObject, type PointerEvent } from "react";
 
 // O índice só muda quando a folha assenta. Durante o gesto, apenas a camada de papel se move.
-export function useVirada(memoria: RefObject<number>) {
+export function useVirada(memoria: RefObject<number>, total: number) {
   const livro = useRef<HTMLDivElement>(null);
   const [pagina, setPagina] = useState(memoria.current);
   const progresso = useRef(0);
@@ -18,11 +18,28 @@ export function useVirada(memoria: RefObject<number>) {
     id: number; x: number; y: number; largura: number; inicio: number;
     retomado: boolean; arrastando: boolean; ultimoX: number; instante: number; velocidade: number;
   } | null>(null);
-  const direcao = pagina === 1 ? 1 : -1;
+  const direcao = useRef(1);
+  function prepararDirecao(sentido: number) {
+    if (pagina + sentido < 1 || pagina + sentido > total) return false;
+    direcao.current = sentido;
+    if (livro.current) livro.current.dataset.sentido = String(sentido);
+    return true;
+  }
+  function irPara(n: number) {
+    cancelAnimationFrame(quadro.current);
+    quadro.current = 0;
+    gesto.current = null;
+    pararAnimacoes();
+    progresso.current = 0;
+    folha.current?.style.removeProperty("transform");
+    sombra.current?.style.removeProperty("opacity");
+    memoria.current = n;
+    setPagina(n);
+  }
 
   function rotacao(p: number) {
     // A largura projetada é largura * cos(ângulo). Sua borda percorre p * largura.
-    return `rotateY(${direcao * Math.acos(1-p)}rad)`;
+    return `rotateY(${direcao.current * Math.acos(1-p)}rad)`;
   }
   function desenhar(valor: number) {
     const p = Math.max(0, Math.min(1, valor));
@@ -48,7 +65,7 @@ export function useVirada(memoria: RefObject<number>) {
     destino.current = avancar;
     function terminar() {
       if (avancar) {
-        memoria.current = pagina === 1 ? 2 : 1;
+        memoria.current = pagina + direcao.current;
         flushSync(() => setPagina(memoria.current));
       }
       pararAnimacoes();
@@ -109,14 +126,19 @@ export function useVirada(memoria: RefObject<number>) {
       const dy = Math.abs(e.clientY-g.y);
       if (dy > 9 && dy > Math.abs(dx)) { cancelar(); return; }
       if (Math.abs(dx) < 10 || Math.abs(dx) <= dy) return;
+      if (!g.retomado && !prepararDirecao(Math.sign(dx))) {
+        bloquearClique.current = true;
+        gesto.current = null;
+        return;
+      }
       g.arrastando = true;
       bloquearClique.current = true;
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-    g.velocidade = direcao * (e.clientX-g.ultimoX)/Math.max(1,e.timeStamp-g.instante);
+    g.velocidade = direcao.current * (e.clientX-g.ultimoX)/Math.max(1,e.timeStamp-g.instante);
     g.ultimoX = e.clientX;
     g.instante = e.timeStamp;
-    pendente.current = g.inicio + direcao*dx/g.largura;
+    pendente.current = g.inicio + direcao.current*dx/g.largura;
     if (!quadro.current) quadro.current = requestAnimationFrame(() => {
       quadro.current = 0;
       desenhar(pendente.current);
@@ -132,12 +154,12 @@ export function useVirada(memoria: RefObject<number>) {
     gesto.current = null;
     if (!g.arrastando) { if (g.retomado) assentar(destino.current); return; }
     cancelAnimationFrame(quadro.current);
-    desenhar(g.inicio + direcao*(e.clientX-g.x)/g.largura);
+    desenhar(g.inicio + direcao.current*(e.clientX-g.x)/g.largura);
     const p = progresso.current;
     const rapido = e.timeStamp-g.instante < 80 && g.velocidade > .55;
     assentar(p >= .35 || (p >= .12 && rapido));
   }
-  return { livro, folha, sombra, pagina, virar: () => { atualizarPreferencia(); if (!animacoes.current.length) assentar(true); }, eventos: {
+  return { livro, folha, sombra, pagina, irPara, virar: (sentido: number) => { atualizarPreferencia(); if (!gesto.current && !animacoes.current.length && prepararDirecao(sentido)) assentar(true); }, eventos: {
     onPointerDown: iniciar, onPointerMove: mover, onPointerUp: soltar,
     onPointerCancel: cancelar, onLostPointerCapture: (e: PointerEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget && gesto.current?.arrastando) cancelar();

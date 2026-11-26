@@ -1,0 +1,70 @@
+import type { RefObject } from "react";
+import { Camera, ChevronLeft, ChevronRight } from "lucide-react";
+import { useVirada } from "./useVirada";
+import { cores } from "./cores";
+import molduras from "./molduras-marinho.json";
+import type { VagaFoto } from "./fotos";
+
+export function LivroAlbum({ fotos, abrir, familia, memoria, donos }: {
+  fotos: VagaFoto[];
+  abrir: (foto: VagaFoto) => void;
+  familia: boolean;
+  memoria: RefObject<number>;
+  donos?: { nome: string; cor: string }[];
+}) {
+  const total = familia ? cores.length * 2 : 2;
+  const { livro, folha, sombra, pagina, virar, irPara, eventos } = useVirada(memoria, total);
+  const capitulo = Math.floor((pagina - 1) / 2);
+  return <section aria-label={familia ? "Livro da família" : "Álbum azul-marinho"}>
+    {familia && <label className="indice-album">Capítulo
+      <select value={capitulo} onChange={e => irPara(Number(e.target.value)*2+1)}>
+        {cores.map(([cor],i) => {
+          const dono = donos?.find(c => c.cor === cor);
+          return <option key={cor} value={i}>{cor}{dono ? " · " + dono.nome : ""}</option>;
+        })}
+      </select>
+    </label>}
+    <div className="marinho-livro" ref={livro} {...eventos}>
+      {[pagina-1,pagina,pagina+1].filter(n=>n>=1 && n<=total).map(n => {
+        const lado = n % 2 === 1 ? 1 : 2;
+        const [cor, tinta] = familia ? cores[Math.floor((n-1)/2)] : ["Azul-marinho","#193954"];
+        const colecao = familia ? fotos.filter(f => f.cor === cor) : fotos;
+        return <div className="marinho-folha" ref={n === pagina ? folha : undefined} data-ativa={n === pagina}
+          data-vizinha={n-pagina} inert={n !== pagina} key={n} aria-label={`Página ${n}`}>
+          {cor === "Azul-marinho" ? <>
+            {molduras.map((m, i) => {
+              if (m.pagina !== lado) return null;
+              const foto = colecao.find(f => f.posicao === i + 1);
+              return <button key={i} className="marinho-foto"
+                style={{left: m.x / 688 * 100 + "%", top: m.y / 768 * 100 + "%",
+                  width: (m.w + 8) / 688 * 100 + "%", height: (m.h + 8) / 768 * 100 + "%",
+                  transform: `translate(-50%, -50%) rotate(${m.angulo}deg)`}}
+                disabled={!foto || (familia && !foto.foto)}
+                aria-label={!familia ? `Abrir foto ${i+1} de 9` : foto?.legenda || `Ver foto ${i+1} de Azul-marinho`}
+                onClick={() => foto && abrir(foto)}>
+                {foto?.mini ? <img src={foto.mini} alt="" draggable={false} decoding="async" /> : !familia && <Camera size={20}/>}
+              </button>;
+            })}
+            <img className="marinho-arte" src={`/album/azul-marinho/${lado}.webp`} width="688" height="768" alt="" draggable={false}/>
+          </> : <div className="folha-provisoria" style={{borderColor:tinta}}>
+            {Array.from({length:lado===1 ? 4 : 5},(_,i) => {
+              const posicao = i + (lado===1 ? 1 : 5);
+              const foto = colecao.find(f => f.posicao === posicao);
+              return foto?.mini ? <button className="quadro" key={posicao} onClick={()=>abrir(foto)}
+                aria-label={foto.legenda || `Ver foto ${posicao} de ${cor}`}>
+                <img src={foto.mini} alt="" draggable={false} decoding="async"/>
+                {foto.legenda && <span>{foto.legenda}</span>}
+              </button> : <span className="vaga-livre" key={posicao} aria-label={`Foto ${posicao} pendente`}>{posicao}</span>;
+            })}
+          </div>}
+          <span className="marinho-sombra" ref={n === pagina ? sombra : undefined} aria-hidden="true" />
+        </div>;
+      })}
+    </div>
+    <div className="marinho-controles">
+      <button disabled={pagina===1} onClick={()=>virar(-1)} aria-label="Página anterior"><ChevronRight/></button>
+      <span aria-live="polite">Página {pagina} de {total}</span>
+      <button disabled={pagina===total} onClick={()=>virar(1)} aria-label="Próxima página"><ChevronLeft/></button>
+    </div>
+  </section>;
+}

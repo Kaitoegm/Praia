@@ -22,18 +22,25 @@ test('dois viajantes acompanham a mesma foto e o aviso da viagem',async({browser
     }
     const org=await entrar(true),familiar=await entrar(false)
     await familiar.getByRole('button',{name:'Da família'}).click()
+    const indice = familiar.getByLabel("Capítulo");
+    const opcao = indice.locator("option").filter({hasText:" · Ana"});
+    await expect(opcao).toHaveCount(1);
+    await indice.selectOption(await opcao.getAttribute("value") as string);
     await org.getByRole('button',{name:'Abrir foto 1 de 9',exact:true}).click()
     await org.getByLabel('Escolher da galeria').setInputFiles('public/praia.jpg')
     await org.getByLabel('Legenda (opcional)').fill('Primeiro dia de praia')
     await org.getByRole('button',{name:'Enviar foto'}).click()
     await expect(org.getByText('1 de 9 fotos enviadas')).toBeVisible()
-    await expect(familiar.getByText('Primeiro dia de praia')).toBeVisible({timeout:15000})
-    await familiar.locator('.quadro').first().click()
+    const publicada = familiar.getByRole("button",{name:"Primeiro dia de praia"});
+    await expect(publicada).toBeVisible({timeout:15000})
+    await publicada.click()
     const imagem=familiar.getByRole('dialog').getByRole('img')
     await expect.poll(()=>imagem.evaluate((e:HTMLImageElement)=>e.naturalWidth)).toBeGreaterThan(0)
     await familiar.getByRole('button',{name:'Fechar foto'}).click()
     await familiar.getByRole('button',{name:'Notificações',exact:true}).click()
     await expect(familiar.locator('.caixa-avisos>a')).toHaveCount(1)
+    await familiar.locator('.caixa-avisos>a').click();
+    await expect(familiar.getByRole('dialog').getByText('Primeiro dia de praia')).toBeVisible();
     await familiar.close()
   }finally{
     await iphone.close()

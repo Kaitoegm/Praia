@@ -1,4 +1,5 @@
-import { PaginasMarinho } from "./PaginasMarinho";
+import { cores } from "./cores";
+import { LivroAlbum } from "./LivroAlbum";
 import { flushSync } from "react-dom";
 import { chavesDosRascunhos } from "./rascunhos";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -42,10 +43,11 @@ export function MinhaCor({
   const [aberta, setAberta] = useState<string | null>(null);
   const [compartilhadas, setCompartilhadas] = useState<VagaFoto[]>([]);
   const [familiaCarregada, setFamiliaCarregada] = useState(false);
-  const temMissao = useRef(false);
+
   const seq = useRef(0);
   const paginaPessoal = useRef(1);
   const paginaFamilia = useRef(1);
+  const fotoDoAviso = useRef(new URLSearchParams(location.search).get("foto"));
   const camera = useRef<HTMLInputElement>(null);
   const [rascunhos, setRascunhos] = useState<IDBValidKey[]>([]);
   const [fotos, setFotos] = useState<VagaFoto[]>([]);
@@ -56,12 +58,21 @@ export function MinhaCor({
       if (familia) {
         const [grupo, inicial] = await Promise.all([
           apiFotos<VagaFoto[]>("?colecao=familia"),
-          temMissao.current ? null : db.rpc("missao_album"),
+          db.rpc("missao_album"),
         ]);
         if (seq.current !== n) return;
         if (inicial?.data) {
           setMissao(inicial.data);
-          temMissao.current = true;
+
+        }
+        if (fotoDoAviso.current) {
+          const alvo = grupo.find(f => f.vaga + "-" + f.posicao === fotoDoAviso.current);
+          const capitulo = cores.findIndex(([cor]) => cor === alvo?.cor);
+          if (alvo && capitulo >= 0) {
+            paginaFamilia.current = capitulo * 2 + (alvo.posicao > 4 ? 2 : 1);
+            setAberta(fotoDoAviso.current);
+          }
+          fotoDoAviso.current = null;
         }
         setCompartilhadas(grupo);
         setFamiliaCarregada(true);
@@ -74,7 +85,7 @@ export function MinhaCor({
         if (seq.current !== n) return;
         if (res.error || !res.data) throw Error();
         setMissao(res.data);
-        temMissao.current = true;
+
         setFotos(proprias);
         setRascunhos(pendentes);
       }
@@ -134,8 +145,6 @@ export function MinhaCor({
   const indice = compartilhadas.findIndex((f) => chave(f) === aberta),
     ampliada = compartilhadas[indice];
   const marinho = "Azul-marinho";
-  const fotosMarinho = compartilhadas.filter(f => f.cor === marinho);
-  const grade = familia ? compartilhadas.filter(f => f.cor !== marinho) : fotos;
   function abrir(v: VagaFoto) {
     if (familia) return setAberta(chave(v));
     if (v.foto || rascunhos.includes(usuario + ":" + v.posicao)) return setEditando(v);
@@ -191,21 +200,13 @@ export function MinhaCor({
                       " de 9 fotos enviadas"}
                 </small>
               </header>
-              {(familia || missao?.cor?.nome === marinho) && <PaginasMarinho key={familia ? "familia" : "pessoal"} memoria={familia ? paginaFamilia : paginaPessoal} pessoal={!familia} fotos={familia ? fotosMarinho : fotos} abrir={abrir} />}
-              {(familia || missao?.cor?.nome !== marinho) && <ol className="grid mosaico">
-                {grade.map((v) => (
+              {(familia || missao?.cor?.nome === marinho) && <LivroAlbum key={familia ? "familia" : "pessoal"} memoria={familia ? paginaFamilia : paginaPessoal} familia={familia} donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />}
+              {(!familia && missao?.cor?.nome !== marinho) && <ol className="grid mosaico">
+                {fotos.map((v) => (
                   <li key={chave(v)}>
                     <button
                       className="quadro"
-                      aria-label={
-                        familia
-                          ? "Ver foto de " +
-                            nome(v.vaga) +
-                            (v.cor ? ", " + v.cor : "") +
-                            ", posição " +
-                            v.posicao
-                          : "Abrir foto " + v.posicao + " de 9"
-                      }
+                      aria-label={`Abrir foto ${v.posicao} de 9`}
                       onClick={() => abrir(v)}
                     >
                       <span
@@ -223,11 +224,7 @@ export function MinhaCor({
                         {v.legenda || "Foto " + v.posicao + " de 9"}
                       </span>
                       <small>
-                        {familia ? <>
-                          <i className="ponto-autor" style={{ backgroundColor: v.amostra }} aria-hidden="true" />
-                          {nome(v.vaga)}
-                          {v.cor && <span className="cor-acessivel"> · {v.cor}</span>}
-                        </> : v.mini ? "" : "Aguardando"}
+                        {v.mini ? "" : "Aguardando"}
                       </small>
                     </button>
                   </li>

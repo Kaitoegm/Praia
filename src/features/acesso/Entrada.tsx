@@ -8,11 +8,33 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
     [foto, setFoto] = useState<File | null>(null),
     [aviso, setAviso] = useState(""),
     [busy, setBusy] = useState(false);
+  const [acesso, setAcesso] = useState(() => new URLSearchParams(location.hash.slice(1)).get("acesso"));
+  useEffect(() => {
+    function receberLink() {
+      const token = new URLSearchParams(location.hash.slice(1)).get("acesso");
+      if (token) { setAcesso(token); setAviso(""); }
+    }
+    window.addEventListener("hashchange", receberLink);
+    return () => window.removeEventListener("hashchange", receberLink);
+  }, []);
+  async function abrirPerfil() {
+    if (!acesso || busy) return;
+    setBusy(true);
+    try {
+      const { error } = await db.auth.verifyOtp({ type: "magiclink", token_hash: acesso });
+      if (error) throw error;
+    } catch {
+      setAviso("O link expirou ou já foi usado. Gere outro no perfil original ou peça ao Juan.");
+    } finally {
+      setBusy(false);
+    }
+  }
   const [credencial, setCredencial] = useState("");
   const pessoa = lista.find((p) => String(p.vaga) === vaga);
   useEffect(() => {
     let ativa = true;
     async function carregar() {
+      if (acesso) { history.replaceState(null, "", location.pathname + location.search); return; }
       const convite = new URLSearchParams(location.hash.slice(1)).get(
         "convite",
       );
@@ -34,7 +56,7 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
     return () => {
       ativa = false;
     };
-  }, []);
+  }, [acesso]);
   async function confirmarJuan() {
     const token = credencial.trim().replace(/^.*#convite=/, "");
     if (!/^[a-f0-9]{64}$/.test(token)) {
@@ -87,6 +109,11 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
         <h1><img src="/ohana-capa.webp" alt="OHANA · おはな" /></h1>
       </header>
       <section>
+        {acesso ? <>
+          <h2>Acessar meu perfil</h2>
+          <button className="acao-perfil" disabled={busy} onClick={abrirPerfil}>Entrar neste celular</button>
+          <button disabled={busy} onClick={() => { setAcesso(null); setAviso(""); }}>Voltar para a lista</button>
+        </> : <>
         <h2>Quem é o viajante?</h2>
         <label>
           Seu nome
@@ -100,13 +127,16 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
           >
             <option value="">Selecione seu nome</option>
             {lista.map((p) => (
-              <option key={p.vaga} value={p.vaga} disabled={!p.disponivel && p.vaga !== 1}>
+              <option key={p.vaga} value={p.vaga}>
                 {p.nome}
                 {p.vaga === 1 ? " · organizador" : !p.disponivel ? " · reservado" : ""}
               </option>
             ))}
           </select>
         </label>
+        {pessoa && !pessoa.disponivel && pessoa.vaga !== 1 && (
+          <p>Para acessar seu perfil neste celular, abra o link de acesso gerado em Perfil no aparelho anterior ou peça um link ao Juan.</p>
+        )}
         {pessoa?.vaga === 1 && !pessoa.disponivel && (
           <>
             <label>Convite pessoal do Juan
@@ -137,6 +167,7 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
         {location.hostname === "ferias-ohana.vercel.app" && lista.some(p => !p.disponivel) && !lista.some(p => p.meu) && (
           <p><a href="https://praia-six.vercel.app/api/perfil?recuperar">Já entrei no site antigo neste celular</a></p>
         )}
+        </>}
         <p role="status">{aviso}</p>
       </section>
     </div>

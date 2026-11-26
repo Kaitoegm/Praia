@@ -52,9 +52,9 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 .marinho-livro { position:relative; aspect-ratio:688/768; overflow:hidden; border-radius:6px; touch-action:pan-y pinch-zoom; user-select:none; }
 .marinho-folha { position:absolute; inset:0; background:#ece9df; isolation:isolate; overflow:hidden; }
 .marinho-folha[data-ativa=true] { z-index:2; transform-origin:right center; transform:rotateY(0deg); backface-visibility:hidden; }
-.marinho-livro[data-pagina="2"] .marinho-folha[data-ativa=true] { transform-origin:left center; }
+.marinho-livro[data-sentido="-1"] .marinho-folha[data-ativa=true] { transform-origin:left center; }
 .marinho-sombra { position:absolute; inset:0; pointer-events:none; z-index:2; background:linear-gradient(to right,transparent,#081d2e); opacity:0; }
-.marinho-livro[data-pagina="2"] .marinho-sombra { background:linear-gradient(to left,transparent,#081d2e); }
+.marinho-livro[data-sentido="-1"] .marinho-sombra { background:linear-gradient(to left,transparent,#081d2e); }
 .marinho-arte { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
 .shell.caderno .marinho-folha button.marinho-foto { display:grid; place-items:center; position:absolute; padding:0; margin:0; min-height:0; min-width:0; border:0; border-radius:0; overflow:hidden; color:#516471; background:transparent; }
 .marinho-foto img { width:100%; height:100%; object-fit:cover; }
@@ -63,3 +63,12 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 .marinho-controles button { min-width:44px; min-height:44px; }
 
 .marinho-foto:disabled { pointer-events:none; }
+
+.marinho-livro[data-sentido="1"] [data-vizinha="1"], .marinho-livro[data-sentido="-1"] [data-vizinha="-1"] { z-index:1; }
+.indice-album { display:grid; gap:4px; margin-bottom:12px; font-weight:600; }
+.indice-album select { min-height:44px; width:100%; padding:6px 12px; }
+.folha-provisoria { height:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:4%; padding:5%; border-block:5px solid; background:#f9f3e7; }
+.folha-provisoria > :first-child:nth-last-child(5) { grid-column:span 2; }
+.folha-provisoria .vaga-livre,.caderno main .folha-provisoria button.quadro { display:grid; place-items:center; position:relative; min-height:0; overflow:hidden; background:#f2ecde; border:4px solid white; box-shadow:0 2px 4px #56462822; color:#746957; }
+.folha-provisoria img { width:100%; height:100%; object-fit:contain; }
+.folha-provisoria button span { position:absolute; bottom:0; width:100%; padding:2px 5px; background:#fff9edeb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

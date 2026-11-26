@@ -36,6 +36,8 @@ Ordem do catálogo: Amarelo, Laranja, Vermelho, Rosa, Roxo, Azul-marinho, Turque
 
 ## 4 · Construir o livro compartilhado desde a primeira visita
 
+**Implementação local.** O índice reúne as 13 cores e o leitor permite folhear as 26 páginas em sequência. O capítulo azul-marinho usa a arte entregue. Os demais usam papel e molduras provisórias até a chegada das artes. O leitor mantém montadas a folha atual e suas vizinhas. Avisos do sino levam à posição publicada.
+
 Fixar a ordem dos capítulos pelo identificador das 13 cores existentes. Na entrada do familiar, mostrar a primeira folha na primeira visita. Oferecer um índice compacto no cabeçalho para saltar direto a uma cor, inclusive com zero fotos. Cada capítulo ganha o nome do participante quando ele recebe a cor no cadastro. Até lá, mostrar apenas a cor.
 
 Montar as páginas a partir das vagas 1–9 e sobrepor as fotos confirmadas pela chave estável de participante e posição. Usar as atribuições reais da viagem. Se as consultas atuais omitirem cores atribuídas com zero fotos, ampliar a leitura autenticada com cor, vaga e nome necessários. Manter as permissões atuais de leitura familiar e edição individual. Publicar, substituir e excluir alteram o conteúdo da mesma moldura. Uma nova foto ou aviso recebido durante a virada atualiza a folha depois que ela assenta, sem deslocar o leitor. Ao abrir um aviso específico, resolver a página da foto pelo identificador, quando disponível, e usar o livro familiar como destino de reserva.

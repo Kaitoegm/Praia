@@ -33,6 +33,21 @@ export async function perfil(req, res) {
         req.headers.authorization.replace(/^Bearer /, ""),
       );
       if (error || !data.user) throw erro(401, "Entre novamente.");
+      const params = new URL(req.url, "http://localhost").searchParams;
+      if (params.get("acao") === "acesso") {
+        const origem = await db.from("participantes").select("viagem_id,vaga")
+          .eq("usuario_id", data.user.id).single();
+        const vaga = Number(params.get("vaga"));
+        if (!origem.data || (origem.data.vaga !== vaga && origem.data.vaga !== 1))
+          throw erro(403, "Você só pode gerar um link para o seu perfil.");
+        const alvo = await db.from("participantes").select("email,usuario_id")
+          .match({ viagem_id: origem.data.viagem_id, vaga }).single();
+        if (!alvo.data?.usuario_id) throw erro(404, "Este perfil ainda não foi cadastrado.");
+        const login = await db.auth.admin.generateLink({ type: "magiclink", email: alvo.data.email });
+        if (login.error || login.data.user.id !== alvo.data.usuario_id)
+          throw erro(503, "Não foi possível gerar o link. Tente novamente.");
+        return reply(200, { token_hash: login.data.properties.hashed_token });
+      }
       const avatar = await retrato(req);
       const r = await db
         .from("participantes")

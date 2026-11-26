@@ -3,7 +3,10 @@ import { Bell, X } from "lucide-react";
 import { db } from "../acesso/client";
 import { apiFotos } from "./fotos";
 
-type Aviso = { id: number; autor: string; arquivo: string | null };
+type Aviso = { id: number; autor: string; vaga: number; posicao: number; arquivo: string | null };
+function linkFoto(a?: Aviso) {
+  return a ? `/album?familia=1&foto=${a.vaga}-${a.posicao}` : "/album?familia=1";
+}
 export function Avisos({ id }: { id: string }) {
   const [lista, setLista] = useState<Aviso[]>([]),
     [aberto, setAberto] = useState(false),
@@ -22,7 +25,7 @@ export function Avisos({ id }: { id: string }) {
       try {
         let consulta = db
           .from("avisos_album")
-          .select("id,autor,arquivo")
+          .select("id,autor,arquivo,vaga,posicao")
           .order("id", { ascending: false })
           .limit(50);
         if (ultimo.current !== null) consulta = consulta.gt("id", ultimo.current);
@@ -139,7 +142,7 @@ export function Avisos({ id }: { id: string }) {
             <p>As novas fotos da família aparecem aqui.</p>
           ) : (
             publicados.map((a) => (
-              <a key={a.id} href="/album?familia=1">
+              <a key={a.id} href={linkFoto(a)}>
                 {a.autor} adicionou uma foto.
               </a>
             ))
@@ -147,7 +150,7 @@ export function Avisos({ id }: { id: string }) {
         </div>
       )}
       {toast && (
-        <a className="toast-album" role="status" href="/album?familia=1">
+        <a className="toast-album" role="status" href={linkFoto(publicados[0])}>
           <Bell size={16} />
           {toast}
         </a>
