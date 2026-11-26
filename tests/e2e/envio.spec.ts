@@ -78,17 +78,16 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     const outras = await (
       await request.get(base, { headers: adminHeaders })
     ).json();
-    await expect(observer.locator(".mosaico img")).toHaveCount(8, {
-      timeout: 12000,
-    });
+    const capitulo = observer.getByLabel("Capítulo");
+    const participante = capitulo.locator("option").filter({hasText:" · Bia"});
+    await capitulo.selectOption(await participante.getAttribute("value") as string);
+    await expect(observer.getByRole("button", {name:"Praia"}).first()).toBeVisible({timeout:12000});
     await observer
       .getByRole("button", { name: "Notificações", exact: true })
       .click();
     await expect(observer.locator(".caixa-avisos>a")).toHaveCount(8);
     await observer.getByRole("button", { name: "Fechar notificações" }).click();
-    await expect(observer.locator(".quadro").first()).toHaveAccessibleName(/posição 8$/);
-    await expect(observer.locator(".ponto-autor")).toHaveCount(8);
-    await observer.locator(".quadro").first().click();
+    await observer.getByRole("button", {name:"Praia"}).first().click();
     await expect(observer.getByRole("dialog")).toBeVisible();
     await observer.getByRole("button", { name: "Fechar foto" }).click();
     expect(
@@ -114,16 +113,15 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
       { key: f.storageKey, session: f.familiar.session },
     );
     await page.goto("http://127.0.0.1:4174/album");
-    const captura = page.waitForEvent("filechooser");
+    await page.getByRole("button",{name:"Próxima página"}).click();
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
-    const seletor = await captura;
-    expect(await seletor.element().getAttribute("capture")).toBe("environment");
     await expect(page.getByLabel("Legenda (opcional)")).toHaveCount(0);
     await page.route("**/api/fotos?acao=preparar*", (route) => route.abort("failed"), { times: 1 });
-    await seletor.setFiles("public/praia.jpg");
+    await page.getByLabel("Tirar foto").setInputFiles("public/praia.jpg");
     await expect(page.getByRole("alert")).toBeVisible();
     await page.getByLabel("Legenda (opcional)").fill("O mar");
     await page.reload();
+    await page.getByRole("button",{name:"Próxima página"}).click();
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
     await expect(page.getByLabel("Legenda (opcional)")).toHaveValue("O mar");
     await page.getByRole("button", {name: "Tentar novamente"}).click();
@@ -161,6 +159,7 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     await expect(page.getByRole("alert")).toBeVisible();
     await page.getByLabel("Legenda (opcional)").fill("Substituta");
     await page.reload();
+    await page.getByRole("button",{name:"Próxima página"}).click();
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
     await expect(page.getByLabel("Legenda (opcional)")).toHaveValue("Substituta");
     await expect(page.getByText(/Rascunho recuperado/)).toBeVisible();

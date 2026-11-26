@@ -33,21 +33,6 @@ export async function perfil(req, res) {
         req.headers.authorization.replace(/^Bearer /, ""),
       );
       if (error || !data.user) throw erro(401, "Entre novamente.");
-      const params = new URL(req.url, "http://localhost").searchParams;
-      if (params.get("acao") === "acesso") {
-        const origem = await db.from("participantes").select("viagem_id,vaga")
-          .eq("usuario_id", data.user.id).single();
-        const vaga = Number(params.get("vaga"));
-        if (!origem.data || (origem.data.vaga !== vaga && origem.data.vaga !== 1))
-          throw erro(403, "Você só pode gerar um link para o seu perfil.");
-        const alvo = await db.from("participantes").select("email,usuario_id")
-          .match({ viagem_id: origem.data.viagem_id, vaga }).single();
-        if (!alvo.data?.usuario_id) throw erro(404, "Este perfil ainda não foi cadastrado.");
-        const login = await db.auth.admin.generateLink({ type: "magiclink", email: alvo.data.email });
-        if (login.error || login.data.user.id !== alvo.data.usuario_id)
-          throw erro(503, "Não foi possível gerar o link. Tente novamente.");
-        return reply(200, { token_hash: login.data.properties.hashed_token });
-      }
       const avatar = await retrato(req);
       const r = await db
         .from("participantes")
@@ -97,27 +82,13 @@ export async function perfil(req, res) {
       ]);
       const r = await db
         .from("participantes")
-        .select("vaga,nome")
+        .select("vaga,nome,usuario_id")
         .eq("viagem_id", c.data.viagem_id)
         .order("vaga");
-      const d = await db
-        .from("aparelho_viajante")
-        .select("vaga,hash")
-        .eq("viagem_id", c.data.viagem_id);
-      if (r.error || d.error) throw erro(503, "Tente novamente.");
-      return reply(
-        200,
-        r.data.map((p) => {
-          const dono = d.data.find((a) => a.vaga === p.vaga);
-          const meu = Boolean(dono && (dono.hash === hash(chave) || (p.vaga === 1 && c.data.organizador)));
-          return {
-            ...p,
-            meu,
-            disponivel:
-              meu || (!dono && (p.vaga !== 1 || c.data.organizador)),
-          };
-        }),
-      );
+      if (r.error) throw erro(503, "Tente novamente.");
+      return reply(200, r.data.map(({ vaga, nome, usuario_id }) => ({
+        vaga, nome, cadastrado: Boolean(usuario_id),
+      })));
     }
     if (req.method !== "POST" || !device) throw erro(403, "Reabra o convite.");
     const pos = Number(
@@ -130,17 +101,7 @@ export async function perfil(req, res) {
       .eq("vaga", pos)
       .single();
     if (p.error) throw erro(404, "Nome indisponível.");
-    const d = await db
-      .from("aparelho_viajante")
-      .select("hash")
-      .match({ viagem_id: c.data.viagem_id, vaga: pos })
-      .maybeSingle();
-    if (pos === 1 && !c.data.organizador && d.data?.hash !== hash(device))
-      throw erro(403, "Esta vaga é do organizador.");
-    const acessoJuan = pos === 1 && c.data.organizador && d.data && p.data.usuario_id;
-    if (d.error || (d.data && d.data.hash !== hash(device) && !acessoJuan))
-      throw erro(409, "Este nome já foi cadastrado.");
-    const foto = d.data ? null : await retrato(req);
+    const foto = p.data.usuario_id ? null : await retrato(req);
     if (!p.data.usuario_id)
       await db.auth.admin.createUser({
         email: p.data.email,
@@ -152,7 +113,9 @@ export async function perfil(req, res) {
       email: p.data.email,
     });
     if (login.error) throw erro(503, "Não foi possível iniciar a sessão.");
-    if (acessoJuan && login.data.user.id === p.data.usuario_id)
+    if (p.data.usuario_id && login.data.user.id !== p.data.usuario_id)
+      throw erro(409, "Perfil incompatível.");
+    if (p.data.usuario_id)
       return reply(200, { token_hash: login.data.properties.hashed_token });
     const r = await db.rpc("assumir_perfil", {
       viagem: c.data.viagem_id,

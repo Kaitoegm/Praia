@@ -1,4 +1,4 @@
-import moldurasMarinho from "../src/features/album/molduras-marinho.json" with { type: "json" };
+import artes from "../src/features/album/paginas.json" with { type: "json" };
 import { createClient } from "@supabase/supabase-js";
 import { localSettings } from "../scripts/supabase-local.mjs";
 import { limite, processar } from "./imagens.mjs";
@@ -199,9 +199,9 @@ export async function fotos(req, res) {
       const state = await operar("iniciar");
       if (!state.pronta) {
         const atribuicao = await db.from("atribuicoes_cor")
-          .select("cor_id,participantes!inner(usuario_id)").eq("participantes.usuario_id", autor_id).maybeSingle();
+          .select("cores(nome),participantes!inner(usuario_id)").eq("participantes.usuario_id", autor_id).maybeSingle();
         if (atribuicao.error) throw atribuicao.error;
-        const moldura = atribuicao.data?.cor_id === 6 ? moldurasMarinho[pos-1] : undefined;
+        const moldura = artes[atribuicao.data?.cores?.nome]?.quadros[pos-1];
         let img;
         try {
           img = await processar(bytes, moldura);

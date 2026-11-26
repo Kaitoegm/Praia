@@ -14,9 +14,7 @@ test('dois viajantes acompanham a mesma foto e o aviso da viagem',async({browser
       const p=await (admin?iphone:browser).newPage(devices[admin?'iPhone 13':'Pixel 7'])
       await p.goto(base+'/entrar#convite='+token)
       await p.getByLabel('Seu nome').selectOption(admin?'1':'2')
-      await p.getByLabel('Escolher da galeria').setInputFiles('public/praia.jpg')
       await p.getByRole('button',{name:'Entrar na viagem'}).click()
-      await p.getByRole('button',{name:'Continuar na viagem'}).click()
       await p.getByRole('link',{name:'Álbum',exact:true}).click()
       return p
     }

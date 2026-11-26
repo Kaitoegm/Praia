@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { db, type Viagem, type Pessoa } from "../acesso/client";
 
-import { LinkAcesso } from "../acesso/LinkAcesso";
 
 export function ConfigurarViagem({
   viagem,
@@ -12,8 +11,6 @@ export function ConfigurarViagem({
   pessoas: Pessoa[];
   reload: () => Promise<void>;
 }) {
-  const [vaga, setVaga] = useState("");
-  const alvo = pessoas.find(p => String(p.vaga) === vaga && p.usuario_id);
   const [aviso, setAviso] = useState("");
   const [busy, setBusy] = useState(false);
   async function salvar(e: FormEvent<HTMLFormElement>) {
@@ -71,13 +68,6 @@ export function ConfigurarViagem({
           ))}
         </ol>
       </section>
-      <label>Ajudar um viajante a entrar em outro celular
-        <select value={vaga} onChange={e => setVaga(e.target.value)}>
-          <option value="">Selecione um perfil cadastrado</option>
-          {pessoas.filter(p => p.usuario_id).map(p => <option key={p.vaga} value={p.vaga}>{p.nome}</option>)}
-        </select>
-      </label>
-      {alvo && <LinkAcesso key={alvo.vaga} pessoa={alvo} />}
       <p role="status">{aviso}</p>
     </>
   );

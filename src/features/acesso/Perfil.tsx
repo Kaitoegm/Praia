@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { db, type Pessoa } from "./client";
-import { LinkAcesso } from "./LinkAcesso";
 import { FotoPerfil } from "./FotoPerfil";
 export function Perfil({
   pessoa,
@@ -44,7 +43,6 @@ export function Perfil({
         </button>
       )}
       <p role="status">{msg}</p>
-      <LinkAcesso pessoa={pessoa} />
     </section>
   );
 }

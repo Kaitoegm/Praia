@@ -1,11 +1,10 @@
-import { cores } from "./cores";
+import { arteDaCor, cores } from "./cores";
 import { LivroAlbum } from "./LivroAlbum";
 import { flushSync } from "react-dom";
 import { chavesDosRascunhos } from "./rascunhos";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Camera,
-  ImagePlus as CameraPlus,
   Images,
   ChevronLeft,
   ChevronRight,
@@ -69,7 +68,7 @@ export function MinhaCor({
           const alvo = grupo.find(f => f.vaga + "-" + f.posicao === fotoDoAviso.current);
           const capitulo = cores.findIndex(([cor]) => cor === alvo?.cor);
           if (alvo && capitulo >= 0) {
-            paginaFamilia.current = capitulo * 2 + (alvo.posicao > 4 ? 2 : 1);
+            paginaFamilia.current = capitulo * 2 + arteDaCor(alvo.cor!).quadros[alvo.posicao-1].pagina;
             setAberta(fotoDoAviso.current);
           }
           fotoDoAviso.current = null;
@@ -144,12 +143,10 @@ export function MinhaCor({
     pessoas.find((p) => p.vaga === v)?.nome ?? "Familiar";
   const indice = compartilhadas.findIndex((f) => chave(f) === aberta),
     ampliada = compartilhadas[indice];
-  const marinho = "Azul-marinho";
   function abrir(v: VagaFoto) {
     if (familia) return setAberta(chave(v));
     if (v.foto || rascunhos.includes(usuario + ":" + v.posicao)) return setEditando(v);
     flushSync(() => setEditando(v));
-    if (missao?.cor?.nome !== marinho) camera.current?.click();
   }
   return (
     <section className="missao caderno-pagina">
@@ -200,36 +197,9 @@ export function MinhaCor({
                       " de 9 fotos enviadas"}
                 </small>
               </header>
-              {(familia || missao?.cor?.nome === marinho) && <LivroAlbum key={familia ? "familia" : "pessoal"} memoria={familia ? paginaFamilia : paginaPessoal} familia={familia} donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />}
-              {(!familia && missao?.cor?.nome !== marinho) && <ol className="grid mosaico">
-                {fotos.map((v) => (
-                  <li key={chave(v)}>
-                    <button
-                      className="quadro"
-                      aria-label={`Abrir foto ${v.posicao} de 9`}
-                      onClick={() => abrir(v)}
-                    >
-                      <span
-                        className={
-                          "janela " + (v.mini ? "ocupada" : "pendente")
-                        }
-                      >
-                        {v.mini ? (
-                          <img src={v.mini} alt="" loading="lazy" decoding="async" />
-                        ) : (
-                          <CameraPlus size={27} strokeWidth={1.1} />
-                        )}
-                      </span>
-                      <span className="legenda">
-                        {v.legenda || "Foto " + v.posicao + " de 9"}
-                      </span>
-                      <small>
-                        {v.mini ? "" : "Aguardando"}
-                      </small>
-                    </button>
-                  </li>
-                ))}
-              </ol>}
+              <LivroAlbum key={familia ? "familia" : "pessoal"} corPessoal={missao?.cor?.nome ?? ""}
+                memoria={familia ? paginaFamilia : paginaPessoal} familia={familia}
+                donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />
               {familia && !compartilhadas.length && (
                 <div className="sorteio">
                   <Images size={32} />

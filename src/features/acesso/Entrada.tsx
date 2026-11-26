@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "./client";
 import { FotoPerfil } from "./FotoPerfil";
-type Opcao = { vaga: number; nome: string; disponivel: boolean; meu: boolean };
+type Opcao = { vaga: number; nome: string; cadastrado: boolean };
 export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => void }) {
   const [lista, setLista] = useState<Opcao[]>([]),
     [vaga, setVaga] = useState(""),
@@ -24,12 +24,11 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
       const { error } = await db.auth.verifyOtp({ type: "magiclink", token_hash: acesso });
       if (error) throw error;
     } catch {
-      setAviso("O link expirou ou já foi usado. Gere outro no perfil original ou peça ao Juan.");
+      setAviso("O link expirou ou já foi usado. Volte para a lista e selecione seu nome.");
     } finally {
       setBusy(false);
     }
   }
-  const [credencial, setCredencial] = useState("");
   const pessoa = lista.find((p) => String(p.vaga) === vaga);
   useEffect(() => {
     let ativa = true;
@@ -47,8 +46,6 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
       if (!ativa) return;
       if (!r.ok) throw Error(dados.message);
       setLista(dados);
-      const meu = dados.find((p: Opcao) => p.meu);
-      if (meu) setVaga(String(meu.vaga));
       if (convite)
         history.replaceState(null, "", location.pathname + location.search);
     }
@@ -57,27 +54,6 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
       ativa = false;
     };
   }, [acesso]);
-  async function confirmarJuan() {
-    const token = credencial.trim().replace(/^.*#convite=/, "");
-    if (!/^[a-f0-9]{64}$/.test(token)) {
-      setAviso("Cole o convite pessoal do Juan completo.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const resposta = await fetch("/api/perfil", { headers: { "x-convite": token } });
-      if (!resposta.ok) throw Error();
-      const opcoes: Opcao[] = await resposta.json();
-      if (!opcoes.some(p => p.vaga === 1 && p.disponivel)) throw Error();
-      setLista(opcoes);
-      setCredencial("");
-      setAviso("");
-    } catch {
-      setAviso("Não foi possível confirmar o convite pessoal do Juan.");
-    } finally {
-      setBusy(false);
-    }
-  }
   async function entrar() {
     setBusy(true);
     setAviso("");
@@ -129,24 +105,12 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
             {lista.map((p) => (
               <option key={p.vaga} value={p.vaga}>
                 {p.nome}
-                {p.vaga === 1 ? " · organizador" : !p.disponivel ? " · reservado" : ""}
+                {p.vaga === 1 ? " · organizador" : ""}
               </option>
             ))}
           </select>
         </label>
-        {pessoa && !pessoa.disponivel && pessoa.vaga !== 1 && (
-          <p>Para acessar seu perfil neste celular, abra o link de acesso gerado em Perfil no aparelho anterior ou peça um link ao Juan.</p>
-        )}
-        {pessoa?.vaga === 1 && !pessoa.disponivel && (
-          <>
-            <label>Convite pessoal do Juan
-              <input type="password" value={credencial} autoComplete="off"
-                onChange={e => setCredencial(e.target.value)} />
-            </label>
-            <button disabled={busy || !credencial.trim()} onClick={confirmarJuan}>Confirmar meu acesso</button>
-          </>
-        )}
-        {pessoa?.disponivel && !pessoa.meu && (
+        {pessoa && !pessoa.cadastrado && (
           <>
             <h3>Sua foto de perfil</h3>
             <p>
@@ -155,17 +119,14 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
             <FotoPerfil arquivo={foto} escolher={setFoto} />
           </>
         )}
-        {pessoa?.disponivel && (
+        {pessoa && (
           <button
             className="acao-perfil"
-            disabled={busy || (!foto && !pessoa.meu)}
+            disabled={busy || (!foto && !pessoa.cadastrado)}
             onClick={entrar}
           >
             {busy ? "Entrando…" : "Entrar na viagem"}
           </button>
-        )}
-        {location.hostname === "ferias-ohana.vercel.app" && lista.some(p => !p.disponivel) && !lista.some(p => p.meu) && (
-          <p><a href="https://praia-six.vercel.app/api/perfil?recuperar">Já entrei no site antigo neste celular</a></p>
         )}
         </>}
         <p role="status">{aviso}</p>

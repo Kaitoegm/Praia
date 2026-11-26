@@ -1,4 +1,4 @@
-import molduras from "./molduras-marinho.json";
+import { arteDaCor } from "./cores";
 import { VisorMoldura } from "./VisorMoldura";
 import { useCallback, useRef, useState, useEffect, type RefObject } from "react";
 import { apiFotos, type VagaFoto } from "./fotos";
@@ -20,7 +20,7 @@ export function EnviarFoto({
   voltar: () => void;
   concluir: () => void;
 }) {
-  const m = cor === "Azul-marinho" ? molduras[vaga.posicao-1] : undefined;
+  const m = arteDaCor(cor)?.quadros[vaga.posicao-1];
   const [visor, setVisor] = useState(!vaga.foto);
   const fecharVisor = useCallback(() => setVisor(false), []);
   const [arquivo, setArquivo] = useState<File | null>(null),

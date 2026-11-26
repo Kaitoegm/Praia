@@ -21,12 +21,13 @@ test("texto ampliado e controles de toque nas telas da viagem", async ({ browser
         await page.addStyleTag({content:"html { font-size: 200% !important; }"});
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
       }
+      await page.getByRole("button",{name:"Próxima página"}).tap();
       await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
       const ultima = await page.getByRole("button",{name:"Abrir foto 9 de 9"}).boundingBox();
       const barra = await page.getByRole("navigation").boundingBox();
       expect(ultima!.y + ultima!.height).toBeLessThanOrEqual(barra!.y);
       await page.getByRole("button",{name:"Da família"}).tap();
-      await page.locator(".quadro").first().tap();
+      await page.getByRole("button", {name:"Fim de tarde na praia"}).tap();
       const modal = page.getByRole("dialog");
       await modal.getByRole("button",{name:"Próxima"}).tap();
       await expect(modal.getByRole("heading",{name:"Maré baixa"})).toBeVisible();
