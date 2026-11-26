@@ -20,12 +20,15 @@ export function Avisos({ id }: { id: string }) {
       if (ocupado || document.hidden) return;
       ocupado = true;
       try {
-        const { data } = await db
+        let consulta = db
           .from("avisos_album")
           .select("id,autor,arquivo")
           .order("id", { ascending: false })
           .limit(50);
+        if (ultimo.current !== null) consulta = consulta.gt("id", ultimo.current);
+        const { data } = await consulta;
         if (!ativo || !data) return;
+        if (ultimo.current !== null && !data.length) return;
         const recente = data[0]?.id ?? 0;
         if (ultimo.current !== null && recente > ultimo.current) {
           const novas = data.filter((a) => a.id > ultimo.current! && a.arquivo);
@@ -38,7 +41,7 @@ export function Avisos({ id }: { id: string }) {
           window.dispatchEvent(new Event("album-atualizado"));
         }
         ultimo.current = recente;
-        setLista(data.filter((a) => a.arquivo));
+        setLista(anterior => [...data, ...anterior].slice(0, 50));
       } finally {
         ocupado = false;
       }
@@ -58,11 +61,12 @@ export function Avisos({ id }: { id: string }) {
       return () => clearTimeout(t);
     }
   }, [toast]);
+  const publicados = lista.filter(a => a.arquivo);
   function abrir() {
     setAberto(!aberto);
-    if (lista.length) {
-      setLido(lista[0].id);
-      localStorage.setItem(chave, String(lista[0].id));
+    if (publicados.length) {
+      setLido(publicados[0].id);
+      localStorage.setItem(chave, String(publicados[0].id));
     }
   }
   async function ativar() {
@@ -116,7 +120,7 @@ export function Avisos({ id }: { id: string }) {
         onClick={abrir}
       >
         <Bell size={19} />
-        {lista.some((a) => a.id > lido) && <i />}
+        {publicados.some((a) => a.id > lido) && <i />}
       </button>
       {aberto && (
         <div className="caixa-avisos">
@@ -131,10 +135,10 @@ export function Avisos({ id }: { id: string }) {
           </header>
           <button disabled={ativando} onClick={ativar}>{ativando ? "Ativando…" : "Ativar no aparelho"}</button>
           <p role="status">{nota}</p>
-          {lista.length === 0 ? (
+          {publicados.length === 0 ? (
             <p>As novas fotos da família aparecem aqui.</p>
           ) : (
-            lista.map((a) => (
+            publicados.map((a) => (
               <a key={a.id} href="/album?familia=1">
                 {a.autor} adicionou uma foto.
               </a>

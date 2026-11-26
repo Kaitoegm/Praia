@@ -1,4 +1,6 @@
-import { useRef, useState, useEffect, type RefObject } from "react";
+import molduras from "./molduras-marinho.json";
+import { VisorMoldura } from "./VisorMoldura";
+import { useCallback, useRef, useState, useEffect, type RefObject } from "react";
 import { apiFotos, type VagaFoto } from "./fotos";
 
 import { lerRascunho, salvarRascunho, type Rascunho } from "./rascunhos";
@@ -18,6 +20,9 @@ export function EnviarFoto({
   voltar: () => void;
   concluir: () => void;
 }) {
+  const m = cor === "Azul-marinho" ? molduras[vaga.posicao-1] : undefined;
+  const [visor, setVisor] = useState(!vaga.foto);
+  const fecharVisor = useCallback(() => setVisor(false), []);
   const [arquivo, setArquivo] = useState<File | null>(null),
     [preview, setPreview] = useState(""),
     [local, setLocal] = useState("");
@@ -105,6 +110,7 @@ export function EnviarFoto({
       setErro("Selecione uma foto de até 15 MB.");
       return;
     }
+    setVisor(false);
     tentativa.current = crypto.randomUUID();
     void guardar({ arquivo: file, legenda, versao: vaga.versao, tentativa: tentativa.current, criado: Date.now() }, true);
     setArquivo(file);
@@ -141,9 +147,13 @@ export function EnviarFoto({
     <section className="envio">
       <h2>Foto {vaga.posicao} de 9</h2>
       <p>Minha cor · {cor}</p>
+      {m && !lendo && !arquivo && (visor
+        ? <VisorMoldura proporcao={m.w/m.h} escolher={escolher} fechar={fecharVisor}/>
+        : <button onClick={() => setVisor(true)}>Abrir visor da moldura</button>)}
       {imagem && (
         <img
           src={imagem}
+          style={m ? {width:"100%",height:"auto",maxHeight:"none",aspectRatio:m.w/m.h,objectFit:"cover"} : undefined}
           alt={
             arquivo
               ? "Prévia da foto selecionada"

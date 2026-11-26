@@ -1,3 +1,4 @@
+import { PaginasMarinho } from "./PaginasMarinho";
 import { flushSync } from "react-dom";
 import { chavesDosRascunhos } from "./rascunhos";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -40,41 +41,48 @@ export function MinhaCor({
   );
   const [aberta, setAberta] = useState<string | null>(null);
   const [compartilhadas, setCompartilhadas] = useState<VagaFoto[]>([]);
+  const [familiaCarregada, setFamiliaCarregada] = useState(false);
+  const temMissao = useRef(false);
   const seq = useRef(0);
+  const paginaPessoal = useRef(1);
+  const paginaFamilia = useRef(1);
   const camera = useRef<HTMLInputElement>(null);
   const [rascunhos, setRascunhos] = useState<IDBValidKey[]>([]);
   const [fotos, setFotos] = useState<VagaFoto[]>([]);
   const [editando, setEditando] = useState<VagaFoto | null>(null);
   const carregar = useCallback(async () => {
     const n = ++seq.current;
-    const { data, error } = await db.rpc("missao_album");
-    let detalhes: VagaFoto[] = [];
-    if (data) {
-      try {
-        const [proprias, grupo, pendentes] = await Promise.all([
-          data.cor ? apiFotos<VagaFoto[]>() : Promise.resolve([]),
+    try {
+      if (familia) {
+        const [grupo, inicial] = await Promise.all([
           apiFotos<VagaFoto[]>("?colecao=familia"),
+          temMissao.current ? null : db.rpc("missao_album"),
+        ]);
+        if (seq.current !== n) return;
+        if (inicial?.data) {
+          setMissao(inicial.data);
+          temMissao.current = true;
+        }
+        setCompartilhadas(grupo);
+        setFamiliaCarregada(true);
+      } else {
+        const [res, proprias, pendentes] = await Promise.all([
+          db.rpc("missao_album"),
+          apiFotos<VagaFoto[]>(),
           chavesDosRascunhos(usuario).catch(() => []),
         ]);
-        detalhes = proprias;
-        if (n === seq.current) {
-          setCompartilhadas(grupo);
-          setRascunhos(pendentes);
-        }
-      } catch {
-        if (seq.current === n)
-          setErro("Não foi possível carregar as fotos. Tente atualizar.");
-        return;
+        if (seq.current !== n) return;
+        if (res.error || !res.data) throw Error();
+        setMissao(res.data);
+        temMissao.current = true;
+        setFotos(proprias);
+        setRascunhos(pendentes);
       }
-    }
-    if (seq.current !== n) return;
-    if (error || !data) setErro("Não foi possível consultar o álbum.");
-    else {
-      setMissao(data);
-      setFotos(detalhes);
       setErro("");
+    } catch {
+      if (seq.current === n) setErro("Não foi possível carregar as fotos. Tente atualizar.");
     }
-  }, [usuario]);
+  }, [usuario, familia]);
   useEffect(() => {
     void carregar();
     const atualizar = () => {
@@ -125,7 +133,15 @@ export function MinhaCor({
     pessoas.find((p) => p.vaga === v)?.nome ?? "Familiar";
   const indice = compartilhadas.findIndex((f) => chave(f) === aberta),
     ampliada = compartilhadas[indice];
-  const grade = familia ? compartilhadas : fotos;
+  const marinho = "Azul-marinho";
+  const fotosMarinho = compartilhadas.filter(f => f.cor === marinho);
+  const grade = familia ? compartilhadas.filter(f => f.cor !== marinho) : fotos;
+  function abrir(v: VagaFoto) {
+    if (familia) return setAberta(chave(v));
+    if (v.foto || rascunhos.includes(usuario + ":" + v.posicao)) return setEditando(v);
+    flushSync(() => setEditando(v));
+    if (missao?.cor?.nome !== marinho) camera.current?.click();
+  }
   return (
     <section className="missao caderno-pagina">
       {!familia && missao?.cor ? (
@@ -152,11 +168,11 @@ export function MinhaCor({
           {erro} <button onClick={carregar}>Atualizar</button>
         </p>
       )}
-      {!missao ? (
+      {(familia ? !familiaCarregada : !missao) ? (
         <p>Carregando álbum…</p>
       ) : (
         <>
-          {!familia && !missao.cor ? (
+          {!familia && !missao?.cor ? (
             <div className="sorteio">
               <h2>Sua cor</h2>
               <p>Confirme sua foto de perfil para receber uma cor.</p>
@@ -175,7 +191,8 @@ export function MinhaCor({
                       " de 9 fotos enviadas"}
                 </small>
               </header>
-              <ol className="grid mosaico">
+              {(familia || missao?.cor?.nome === marinho) && <PaginasMarinho key={familia ? "familia" : "pessoal"} memoria={familia ? paginaFamilia : paginaPessoal} pessoal={!familia} fotos={familia ? fotosMarinho : fotos} abrir={abrir} />}
+              {(familia || missao?.cor?.nome !== marinho) && <ol className="grid mosaico">
                 {grade.map((v) => (
                   <li key={chave(v)}>
                     <button
@@ -189,13 +206,7 @@ export function MinhaCor({
                             v.posicao
                           : "Abrir foto " + v.posicao + " de 9"
                       }
-                      onClick={() => {
-                        if (familia) return setAberta(chave(v));
-                        if (v.foto || rascunhos.includes(usuario + ":" + v.posicao)) return setEditando(v);
-                        // O seletor precisa abrir ainda no gesto de toque, inclusive no Safari.
-                        flushSync(() => setEditando(v));
-                        camera.current?.click();
-                      }}
+                      onClick={() => abrir(v)}
                     >
                       <span
                         className={
@@ -203,7 +214,7 @@ export function MinhaCor({
                         }
                       >
                         {v.mini ? (
-                          <img src={v.mini} alt="" loading="lazy" />
+                          <img src={v.mini} alt="" loading="lazy" decoding="async" />
                         ) : (
                           <CameraPlus size={27} strokeWidth={1.1} />
                         )}
@@ -221,8 +232,8 @@ export function MinhaCor({
                     </button>
                   </li>
                 ))}
-              </ol>
-              {familia && !grade.length && (
+              </ol>}
+              {familia && !compartilhadas.length && (
                 <div className="sorteio">
                   <Images size={32} />
                   <p>A primeira foto da família vai aparecer aqui.</p>

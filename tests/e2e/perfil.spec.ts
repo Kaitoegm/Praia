@@ -19,6 +19,10 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
       });
     expect(invite.error).toBeNull();
     const p = await browser.newPage(devices[browser.browserType().name()==='webkit'?'iPhone 13':'Pixel 7']);
+    let buscasFamilia = 0;
+    p.on("request", req => {
+      if (new URL(req.url()).searchParams.get("colecao") === "familia") buscasFamilia++;
+    });
     await p.goto(base + "/entrar#convite=" + token);
     await p.getByLabel("Seu nome").selectOption("3");
     await expect(
@@ -29,10 +33,17 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     await expect(p).toHaveURL(/\/album$/);
     await expect(p.getByRole("heading", {name: /^Sua cor é .+/})).toBeVisible();
     await p.getByRole("link", { name: "Jogos", exact: true }).click();
+    expect(buscasFamilia).toBe(0);
+    const inicioDocumento = await p.evaluate(() => performance.timeOrigin);
     const anterior = await p
       .getByRole("img", { name: "Foto de Caio" })
       .getAttribute("src");
     await p.getByRole("link", { name: "Perfil", exact: true }).click();
+    await p.goBack();
+    await expect(p.getByRole("heading", { name: "Ranking dos jogos" })).toBeVisible();
+    await p.goForward();
+    await expect(p.getByLabel("Tirar foto")).toBeAttached();
+    expect(await p.evaluate(() => performance.timeOrigin)).toBe(inicioDocumento);
     await p
       .getByLabel("Tirar foto")
       .setInputFiles("tests/fixtures/fotos/exemplo.heic");

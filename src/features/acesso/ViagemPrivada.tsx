@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CalendarDays, Camera, Trophy, UserRound } from "lucide-react";
 import { Marca } from "../../app/Marca";
 import { Perfil } from "./Perfil";
 import { db, type Pessoa, type Viagem } from "./client";
 import { Entrada } from "./Entrada";
-import { Agenda } from "../agenda/Agenda";
 import { Ranking } from "../jogos/Ranking";
 import { MinhaCor } from "../album/MinhaCor";
 import { Avisos } from "../album/Avisos";
 import { ConfigurarViagem } from "../viagem/ConfigurarViagem";
+
+const Agenda = lazy(() => import("../agenda/Agenda").then(m => ({ default: m.Agenda })));
 
 export function ViagemPrivada() {
   const [identidade, setIdentidade] = useState<string | null | undefined>(
@@ -46,7 +47,19 @@ function Area({ id }: { id: string }) {
   const [viagem, setViagem] = useState<Viagem | null>(null);
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [erro, setErro] = useState(false);
+  const [url, setUrl] = useState(() => location.pathname + location.search);
+  const [visita, setVisita] = useState(0);
+  const ultimaConsulta = useRef(0);
+  const consultaAtual = useRef(0);
+  const principal = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const voltar = () => setUrl(location.pathname + location.search);
+    window.addEventListener("popstate", voltar);
+    return () => window.removeEventListener("popstate", voltar);
+  }, []);
   async function reload() {
+    const consulta = ++consultaAtual.current;
+    ultimaConsulta.current = Date.now();
     const [v, p] = await Promise.all([
       db.from("viagens").select("*").single(),
       db
@@ -54,6 +67,7 @@ function Area({ id }: { id: string }) {
         .select("vaga,nome,avatar,usuario_id")
         .order("vaga"),
     ]);
+    if (consulta !== consultaAtual.current) return;
     setErro(Boolean(v.error || p.error));
     setViagem(v.data);
     setPessoas(p.data ?? []);
@@ -67,7 +81,8 @@ function Area({ id }: { id: string }) {
     return () => document.removeEventListener('visibilitychange', atualizar);
   }, []);
   const eu = pessoas.find((p) => p.usuario_id === id);
-  const path = location.pathname === "/jogos" ? "/ranking" : location.pathname;
+  const rota = url.split("?")[0];
+  const path = rota === "/jogos" ? "/ranking" : rota;
   const abas = [
     { path: "/agenda", label: "Agenda", Icon: CalendarDays },
     { path: "/ranking", label: "Jogos", Icon: Trophy },
@@ -76,7 +91,7 @@ function Area({ id }: { id: string }) {
   ];
   return (
     <>
-      <main>
+      <main key={visita} ref={principal} tabIndex={-1}>
         {erro ? (
           <p>
             Não foi possível abrir sua viagem.{" "}
@@ -91,7 +106,7 @@ function Area({ id }: { id: string }) {
         ) : (
           <>
             {path === "/agenda" || path === "/" ? (
-              <Agenda viagem={viagem} admin={eu?.vaga === 1} />
+              <Suspense fallback={<p>Carregando agenda…</p>}><Agenda viagem={viagem} admin={eu?.vaga === 1} /></Suspense>
             ) : path === "/ranking" ? (
               <Ranking pessoas={pessoas} eu={eu} fuso={viagem.fuso} />
             ) : path === "/album" ? (
@@ -114,6 +129,16 @@ function Area({ id }: { id: string }) {
         {abas.map(({ path: href, label, Icon }) => (
           <a
             href={href}
+            onClick={event => {
+              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              event.preventDefault();
+              if (location.pathname === href) setVisita(n => n + 1);
+              if (location.pathname + location.search !== href) history.pushState(null, "", href);
+              setUrl(href);
+              if (Date.now() - ultimaConsulta.current > 30000) void reload();
+              principal.current?.focus({ preventScroll: true });
+              window.scrollTo(0, 0);
+            }}
             key={href}
             aria-current={path === href ? "page" : undefined}
           >
