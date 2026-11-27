@@ -3,16 +3,22 @@ import { driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
 import "./guia-tucano.css";
 
+function parada(element: string, title: string, description: string, instruction: string): DriveStep {
+  return {
+    element, disableActiveInteraction:false, advanceOn:{event:"click", strict:true},
+    focus:"element",
+    popover:{title, description, instruction, showButtons:["previous","close"]},
+  };
+}
+
 const etapas: DriveStep[] = [
-  { popover: { title:"Bem-vindo ao OHANA!", description:"Sou o tucano da viagem. Vamos explorar o OHANA juntos?" } },
-  { element:'nav a[href="/agenda"]', popover:{title:"Agenda",description:"Escolha um dia da viagem para conferir os horários e locais das atividades."} },
-  { element:'nav a[href="/ranking"]', popover:{title:"Jogos",description:"Acompanhe os pontos e o ranking das rodadas da família."} },
-  { element:'nav a[href="/album"]', disableActiveInteraction:false, advanceOn:{event:"click",strict:true},
-    focus:"element", popover:{title:"Álbum",description:"Vamos abrir seu álbum de viagem.",instruction:"Toque na aba Álbum para avançar."} },
-  { element:'[data-guia="minha-cor"]', popover:{title:"Minha cor",description:"Toque numa moldura da sua cor para tirar ou escolher uma foto. São nove espaços para preencher durante a viagem."} },
-  { element:'[data-guia="da-familia"]', popover:{title:"Álbum da família",description:"Veja as fotos de todos. Deslize para a esquerda para avançar ou toque na cor para escolher outro capítulo."} },
-  { element:'[data-guia="avisos"]', popover:{title:"Avisos de novas fotos",description:"Quando alguém publicar, toque no sino para abrir o aviso e ir até a foto."} },
-  { popover:{title:"Boa viagem!",description:"A aventura começa aqui. Para rever as dicas, abra Ver guia do tucano no Perfil."} },
+  { popover:{title:"Bem-vindo ao OHANA!",description:"Sou o tucano da viagem. Bora fazer um passeio pelo OHANA?",nextBtnText:"Começar passeio"} },
+  parada('nav a[href="/agenda"]', "Agenda", "Aqui ficam os horários e locais da viagem.", "Abra a Agenda."),
+  parada('nav a[href="/ranking"]', "Jogos", "Aqui você acompanha os pontos de cada rodada.", "Toque em Jogos."),
+  parada('nav a[href="/album"]', "Seu álbum", "Em Minha cor, você tem nove molduras para tirar ou escolher fotos.", "Abra o Álbum."),
+  parada('[data-guia="da-familia"]', "Álbum da família", "Deslize para a esquerda para folhear. Toque na cor para escolher outro capítulo.", "Toque em Da família."),
+  parada('[data-guia="avisos"]', "Avisos de novas fotos", "Quando alguém publicar, as novidades aparecem aqui.", "Toque no sino."),
+  { popover:{title:"Boa viagem!",description:"Você já sabe onde encontrar tudo. Para repetir o passeio, abra Ver guia do tucano no Perfil."} },
 ];
 
 export function GuiaTucano({ fechar, abrirTela }: { fechar: () => void; abrirTela: (url: string) => void }) {
@@ -27,7 +33,7 @@ export function GuiaTucano({ fechar, abrirTela }: { fechar: () => void; abrirTel
     function mover(indice: number) {
       if (indice >= etapas.length) { tour.destroy(); return; }
       if (indice === 4) acoes.current.abrirTela("/album");
-      if (indice === 5) acoes.current.abrirTela("/album?familia=1");
+
       tour.moveTo(indice);
     }
 

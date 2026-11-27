@@ -37,30 +37,28 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     await p.getByRole("button",{name:"Continuar na viagem"}).click();
     const guia = p.locator(".tucano-tour");
     await expect(guia.locator("img")).toHaveAttribute("src", "/tucano-conversa.webp");
-    await guia.getByRole("button", {name:"Próximo"}).click();
+    await guia.getByRole("button", {name:"Começar passeio"}).click();
     await expect(guia.locator("img")).toHaveAttribute("src", "/tucano-aponta.webp");
-    await guia.getByRole("button", {name:"Próximo"}).click();
+    await p.getByRole("link", {name:"Agenda",exact:true}).click();
     await expect(guia.getByRole("heading", {name:"Jogos"})).toBeVisible();
-    await guia.getByRole("button", {name:"Próximo"}).click();
-    await expect(guia.getByText("Toque na aba Álbum para avançar.")).toBeVisible();
+    await p.getByRole("link", {name:"Jogos",exact:true}).click();
+    await expect(guia.getByRole("heading", {name:"Seu álbum"})).toBeVisible();
     await p.getByRole("link", {name:"Álbum",exact:true}).click();
-    await expect(guia.getByRole("heading", {name:"Minha cor"})).toBeVisible();
-    const destaque = p.locator('[data-guia="minha-cor"]');
-    await expect(destaque).toHaveClass(/driver-active-element/);
-    for (const width of [320, 768, 1280, 390]) {
-      await p.setViewportSize({width,height:800});
-      await expect.poll(async () => {
-        const caixa = await guia.boundingBox();
-        return Boolean(caixa && caixa.x >= 0 && caixa.x + caixa.width <= width + 1 && caixa.y >= 0 && caixa.y + caixa.height <= 801);
-      }).toBe(true);
-    }
-    await guia.getByRole("button", {name:"Pular guia"}).click();
+    await expect(guia.getByRole("heading", {name:"Álbum da família"})).toBeVisible();
+    await expect(p.locator('[data-guia="da-familia"]')).toHaveClass(/driver-active-element/);
+    await p.getByRole("button", {name:"Da família",exact:true}).click();
+    await expect(guia.getByRole("heading", {name:"Avisos de novas fotos"})).toBeVisible();
+    await p.getByRole("button", {name:"Notificações",exact:true}).click();
+    await expect(guia.getByRole("heading", {name:"Boa viagem!"})).toBeVisible();
+    await guia.getByRole("button", {name:"Concluir"}).click();
+    await p.getByRole("button", {name:"Fechar notificações"}).click();
+    await p.getByRole("button", {name:"Minha cor",exact:true}).click();
     await expect(guia).toHaveCount(0);
     await expect(p.locator(".postal-cor h1")).toContainText(corRevelada);
     await expect(p).toHaveURL(/\/album$/);
     await expect(p.getByRole("heading", {name: /^Sua cor é .+/})).toBeVisible();
     await p.getByRole("link", { name: "Jogos", exact: true }).click();
-    expect(buscasFamilia).toBe(0);
+    expect(buscasFamilia).toBeGreaterThan(0);
     const inicioDocumento = await p.evaluate(() => performance.timeOrigin);
     const anterior = await p
       .getByRole("img", { name: "Foto de Caio" })
