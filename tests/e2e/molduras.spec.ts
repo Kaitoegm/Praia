@@ -64,6 +64,19 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
     await page.getByRole("button",{name:"Da família"}).click();
     const indice = page.getByLabel("Capítulo");
     await expect(indice.locator("option")).toHaveCount(13);
+    await livro.scrollIntoViewIfNeeded();
+    const area = (await livro.boundingBox())!;
+    async function folhearFamilia(de: number, para: number) {
+      const altura = area.y + area.height * .5;
+      await page.mouse.move(area.x + area.width * de, altura);
+      await page.mouse.down();
+      await page.mouse.move(area.x + area.width * para, altura, { steps: 8 });
+      await page.mouse.up();
+    }
+    await folhearFamilia(.75, .25);
+    await expect(page.getByText("Página 2 de 26")).toBeVisible();
+    await folhearFamilia(.25, .75);
+    await expect(page.getByText("Página 1 de 26")).toBeVisible();
     await indice.selectOption("5");
     await expect(page.getByText("Página 11 de 26")).toBeVisible();
     await page.getByRole("button",{name:"Próxima página"}).click();

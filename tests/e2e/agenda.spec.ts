@@ -91,6 +91,7 @@ test("agenda compartilhada no fuso do destino", async ({ browser }) => {
     await criar("Jantar", "2027-01-16T20:00");
     await criar("Passeio", "2027-01-17T09:00");
     await page.getByRole("button", { name: "16 de janeiro" }).click();
+    await page.getByLabel("Atividade do dia").selectOption({label:"20:00 · Jantar"});
     await page
       .locator("article")
       .filter({ hasText: "Jantar" })

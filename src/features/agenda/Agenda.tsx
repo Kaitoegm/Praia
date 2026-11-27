@@ -45,6 +45,7 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
         : today;
   });
   const [editor, setEditor] = useState<Atividade | "nova" | null>(null);
+  const [atividadeId, setAtividadeId] = useState("");
   const request = useRef(0);
   const reload = useCallback(async () => {
     const n = ++request.current;
@@ -83,7 +84,7 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
   const primeiroDia = Temporal.PlainDate.from(viagem.inicio);
   const duracao =
     primeiroDia.until(Temporal.PlainDate.from(viagem.fim)).days + 1;
-  if (duracao <= 31)
+  if (duracao <= 7)
     for (let i = 0; i < duracao; i++) days.push(primeiroDia.add({ days: i }));
   if (editor && admin)
     return (
@@ -93,7 +94,8 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
         dia={dia}
         viagem={viagem}
         fechar={() => setEditor(null)}
-        salvo={async (d) => {
+        salvo={async (d, id) => {
+          setAtividadeId(id);
           setDia(d);
           setEditor(null);
           await reload();
@@ -132,7 +134,7 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
               </span>
             </div>
           )}
-          {duracao > 31 ? (
+          {duracao > 7 ? (
             <label>
               Dia da viagem
               <input
@@ -171,10 +173,15 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
               month: "long",
             })}
           </h3>
+          {lista.length > 1 && <label className="seletor-lista">Atividade do dia
+            <select value={lista.find(a => a.id === atividadeId)?.id ?? lista[0].id} onChange={e => setAtividadeId(e.target.value)}>
+              {lista.map(a => <option key={a.id} value={a.id}>{hora(a.inicio, viagem.fuso)} · {a.titulo}</option>)}
+            </select>
+          </label>}
           {lista.length === 0 ? (
             <p className="empty">Dia livre na praia.</p>
           ) : (
-            lista.map((a) => (
+            [lista.find(a => a.id === atividadeId) ?? lista[0]].map((a) => (
               <article key={a.id} className="atividade" data-cancelada={a.cancelada}>
                 <time dateTime={a.inicio}>{hora(a.inicio, viagem.fuso)}</time>
                 <div>
@@ -217,7 +224,7 @@ function Formulario({
   dia: string;
   viagem: Viagem;
   fechar: () => void;
-  salvo: (dia: string) => Promise<void>;
+  salvo: (dia: string, id: string) => Promise<void>;
 }) {
   const [id] = useState(() => a?.id ?? crypto.randomUUID());
   const [aviso, setAviso] = useState(""),
@@ -263,7 +270,7 @@ function Formulario({
         throw Error(
           "Não foi possível salvar. Confira os dados e atualize a agenda.",
         );
-      await salvo(inicio.slice(0, 10));
+      await salvo(inicio.slice(0, 10), id);
     } catch (err) {
       setAviso(
         err instanceof RangeError
@@ -287,7 +294,7 @@ function Formulario({
       .select("id")
       .single();
     if (r.error) setAviso("Não foi possível cancelar. Tente novamente.");
-    else await salvo(dia);
+    else await salvo(dia, id);
     setBusy(false);
   }
   return (

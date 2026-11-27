@@ -65,6 +65,8 @@ export function Ranking({
     anterior: number;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [grupo, setGrupo] = useState(0);
+  const [historico, setHistorico] = useState("");
   const seq = useRef(0);
   const reload = useCallback(async () => {
     const n = ++seq.current;
@@ -118,6 +120,10 @@ export function Ranking({
     );
   }
   const inscritos = pessoas.filter((p) => p.usuario_id && p.avatar);
+  const porPagina = 4;
+  const paginas = Math.ceil(inscritos.length / porPagina);
+  const inicio = Math.max(0, Math.min(grupo, paginas - 1)) * porPagina;
+  const rodadaAtual = rows?.find(r => r.id === historico) ?? rows?.[0];
   if (nova && eu?.vaga === 1)
     return (
       <Rodada
@@ -152,8 +158,15 @@ export function Ranking({
       ) : (
         <>
           {rows.length === 0 && <p>O primeiro jogo ainda vai começar.</p>}
+          {paginas > 1 && <label className="seletor-lista">Participantes
+            <select aria-label="Participantes" value={inicio / porPagina} onChange={e => setGrupo(Number(e.target.value))}>
+              {Array.from({length: paginas}, (_, i) => <option key={i} value={i}>
+                {i * porPagina + 1} a {Math.min((i + 1) * porPagina, inscritos.length)} de {inscritos.length}
+              </option>)}
+            </select>
+          </label>}
           <ol className="placar" aria-label="Classificação">
-            {classificar(inscritos, rows).map((p) => (
+            {classificar(inscritos, rows).slice(inicio, inicio + porPagina).map((p) => (
               <li key={p.vaga} data-lider={p.posicao === 1 && p.total > 0}>
                 <b>{p.posicao}º</b>
                 {p.avatar?<img className="avatar-ranking" src={p.avatar} alt={'Foto de '+p.nome}/>:<span className="avatar-ranking iniciais" aria-hidden="true">{p.nome.slice(0,1)}</span>}
@@ -165,8 +178,13 @@ export function Ranking({
               </li>
             ))}
           </ol>
-          <h2>Histórico de rodadas</h2>
-          {rows.map((r) => (
+          {rows.length > 0 && <h2>Histórico de rodadas</h2>}
+          {rows.length > 1 && <label className="seletor-lista">Rodada
+            <select value={rodadaAtual?.id} onChange={e => { setHistorico(e.target.value); setEdicao(null); }}>
+              {rows.map(r => <option key={r.id} value={r.id}>{r.jogo} · {r.titulo}</option>)}
+            </select>
+          </label>}
+          {(rodadaAtual ? [rodadaAtual] : []).map((r) => (
             <details key={r.id}>
               <summary>
                 {r.jogo} · {r.titulo}

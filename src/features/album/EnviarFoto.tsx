@@ -153,7 +153,7 @@ export function EnviarFoto({
       {imagem && (
         <img
           src={imagem}
-          style={m ? {width:"100%",height:"auto",maxHeight:"none",aspectRatio:m.w/m.h,objectFit:"cover"} : undefined}
+          style={m ? {width:`min(100%, ${30 * m.w / m.h}dvh)`,height:"auto",aspectRatio:m.w/m.h,objectFit:"cover"} : undefined}
           alt={
             arquivo
               ? "Prévia da foto selecionada"

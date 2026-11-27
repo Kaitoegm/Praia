@@ -40,7 +40,7 @@ export function VisorMoldura({ proporcao, escolher, fechar }: {
   }
   return <div>{erro ? <p role="status">{erro}</p> : <>
     <video ref={video} autoPlay playsInline muted onLoadedData={()=>setPronto(true)}
-      aria-label="Enquadramento da moldura" style={{width:"100%", maxHeight:"none",aspectRatio:proporcao,objectFit:"cover",display:"block",background:"#102736"}}/>
+      aria-label="Enquadramento da moldura" style={{width:`min(100%, ${38 * proporcao}dvh)`, marginInline:"auto", maxHeight:"none",aspectRatio:proporcao,objectFit:"cover",display:"block",background:"#102736"}}/>
     <button type="button" disabled={!pronto} onClick={disparar}>Fotografar</button>
   </>}</div>;
 }

@@ -189,3 +189,66 @@ nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); backgro
   .album-abas { max-width: 100%; }
   .shell main > a[href="/configurar"] { display: inline-flex; align-items: center; min-height: 44px; }
 }
+
+/* A barra de abas participa do layout e reserva sua própria área segura. */
+@media (max-width: 580px) {
+  .shell:has(> nav) {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto minmax(0,1fr) auto;
+  }
+  .shell > .brand { height: 48px; }
+  .shell:has(> nav) > main {
+    min-width: 0;
+    overflow: auto;
+    padding-block: 8px;
+    overscroll-behavior: contain;
+  }
+  .shell > nav { position: static; width: 100%; padding-top: 3px; }
+  .shell > nav a { min-height: 46px; }
+  .shell main :is(select,input,textarea) { min-width: 0; max-width: 100%; }
+  .shell main .folha-titulo { margin: 0 0 10px; padding: 6px 0 10px; }
+  .folha-titulo h1 { font-size: clamp(1.6rem,7vw,2.2rem); }
+  .agenda .agenda-dias { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 2px; }
+  .agenda .agenda-dias button { min-width: 0; min-height: 44px; padding-inline: 0; }
+  .agenda .proxima { margin-block: 8px; padding: 8px 12px; }
+  .seletor-lista, .indice-album { grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 8px; }
+  .ranking .placar { margin-block: 8px; }
+  .ranking .placar li { padding-block: 4px; }
+  .ranking [role=status]:empty, .perfil-viajante [role=status]:empty { margin: 0; }
+  .ranking h2 { margin: 8px 0; font-size: 1.12rem; }
+  .ranking details { padding-block: 0; }
+  .entrada-viajante .capa-entrada img { height: clamp(76px,16dvh,160px); }
+  .shell:has(.entrada-viajante) main { padding-bottom: 12px; }
+  .entrada-viajante section, .perfil-viajante { margin-top: 8px; padding: 14px; }
+  .entrada-viajante h3, .retrato { margin-block: 8px; }
+  .entrada-viajante .rosto { width: 68px; height: 68px; }
+  .shell.caderno main:has(.livro-album), .caderno-pagina:has(.livro-album), .livro-album {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .shell.caderno .caderno-pagina:has(.livro-album), .livro-album { flex: 1; min-height: min-content; margin: 0; }
+  .shell.caderno .missao .postal-cor {
+    margin: 0; min-height: 0; padding: 7px 14px;
+    grid-template-columns: minmax(0,1fr) 38px;
+  }
+  .postal-cor h1 { font-size: 1.55rem; }
+  .postal-cor h1 span { margin: 0; font-size: .7rem; }
+  .shell.caderno .missao .capa { padding: 4px 0; margin: 0; }
+  .shell.caderno .missao .capa h1 { margin: 2px 0; font-size: 1.55rem; }
+  .album-abas { margin: 0 auto; padding: 2px; }
+  .shell.caderno .missao .colecao-titulo { margin: 0; }
+  .indice-album { margin: 0; }
+  .livro-album .marinho-livro { flex: 1; min-height: 145px; aspect-ratio: auto; }
+  .marinho-controles { padding: 0; font-variant-numeric: tabular-nums; }
+  .caderno-pagina:has(.livro-album) > .sorteio { padding: 0; margin: 0; background: transparent; border: 0; }
+  .caderno-pagina:has(.livro-album) > .sorteio svg { display: none; }
+  .caderno-pagina:has(.livro-album) > .sorteio p { margin: 0; font-size: .85rem; }
+  .caderno .envio { padding-block: 4px; gap: 6px; }
+  .caderno .envio > img { max-height: 30dvh; }
+}
+.ajustes-viagem { margin-block: 12px; border-block: 1px solid var(--borda); }
+.ajustes-viagem summary { padding-block: 14px; cursor: pointer; font-weight: 600; }
+.resumo-pontos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
+.resumo-pontos li { justify-content: space-between; flex-wrap: wrap; gap: 4px; padding: 5px 8px; margin: 0; }

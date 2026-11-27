@@ -19,6 +19,7 @@ export function Rodada({
     [busy, setBusy] = useState(false),
     [erro, setErro] = useState("");
   const [chave] = useState(() => crypto.randomUUID());
+  const [vagaAtual, setVagaAtual] = useState(pessoas[0]?.vaga);
   const jogadores = pessoas.filter((p) => p.vaga in valores);
   async function confirmar() {
     setBusy(true);
@@ -46,7 +47,7 @@ export function Rodada({
           <h3>
             {jogo} · {titulo}
           </h3>
-          <ol>
+          <ol className="resumo-pontos">
             {jogadores.map((p) => (
               <li key={p.vaga}>
                 {p.nome}
@@ -71,6 +72,12 @@ export function Rodada({
             e.preventDefault();
             if (!jogadores.length || !jogo.trim() || !titulo.trim()) {
               setErro("Informe jogo, rodada e ao menos um jogador.");
+              return;
+            }
+            const incompleto = jogadores.find(p => !valores[p.vaga].trim() || !Number.isInteger(Number(valores[p.vaga])) || Number(valores[p.vaga]) < 0 || Number(valores[p.vaga]) > 2147483647);
+            if (incompleto) {
+              setVagaAtual(incompleto.vaga);
+              setErro("Confira os pontos de " + incompleto.nome + ".");
               return;
             }
             setErro("");
@@ -102,7 +109,12 @@ export function Rodada({
           </label>
           <fieldset>
             <legend>Quem jogou?</legend>
-            {pessoas.map((p) => (
+            {pessoas.length > 2 && <label>Selecionar participante
+              <select value={vagaAtual} onChange={e => setVagaAtual(Number(e.target.value))}>
+                {pessoas.map(p => <option key={p.vaga} value={p.vaga}>{p.nome}{p.vaga in valores ? " · " + (valores[p.vaga] || "…") + " pts" : ""}</option>)}
+              </select>
+            </label>}
+            {pessoas.filter(p => pessoas.length <= 2 || p.vaga === vagaAtual).map((p) => (
               <div key={p.vaga}>
                 <label className="jogador">
                   <input

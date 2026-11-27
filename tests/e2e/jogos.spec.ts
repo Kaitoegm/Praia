@@ -57,7 +57,9 @@ test("organizador joga, revisa e corrige uma rodada no celular", async ({
       await route.fulfill({ json: jogadores });
     });
     await page.reload();
-    await expect(lista.getByRole("listitem")).toHaveCount(13);
+    await expect(lista.getByRole("listitem")).toHaveCount(4);
+    await page.getByLabel("Participantes", {exact: true}).selectOption("3");
+    await expect(lista.getByRole("listitem")).toHaveCount(1);
     for (const width of [320, 390, 430]) {
       await page.setViewportSize({ width, height: 800 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);

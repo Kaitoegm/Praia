@@ -2,7 +2,7 @@ import { flushSync } from "react-dom";
 import { useEffect, useRef, useState, type RefObject, type PointerEvent } from "react";
 
 // O índice só muda quando a folha assenta. Durante o gesto, apenas a camada de papel se move.
-export function useVirada(memoria: RefObject<number>, total: number) {
+export function useVirada(memoria: RefObject<number>, total: number, sentidoAvanco: 1 | -1) {
   const livro = useRef<HTMLDivElement>(null);
   const [pagina, setPagina] = useState(memoria.current);
   const progresso = useRef(0);
@@ -18,11 +18,11 @@ export function useVirada(memoria: RefObject<number>, total: number) {
     id: number; x: number; y: number; largura: number; inicio: number;
     retomado: boolean; arrastando: boolean; ultimoX: number; instante: number; velocidade: number;
   } | null>(null);
-  const direcao = useRef(1);
+  const direcaoFisica = useRef<number>(sentidoAvanco);
   function prepararDirecao(sentido: number) {
     if (pagina + sentido < 1 || pagina + sentido > total) return false;
-    direcao.current = sentido;
-    if (livro.current) livro.current.dataset.sentido = String(sentido);
+    direcaoFisica.current = sentido * sentidoAvanco;
+    if (livro.current) livro.current.dataset.sentido = String(direcaoFisica.current);
     return true;
   }
   function irPara(n: number) {
@@ -39,7 +39,7 @@ export function useVirada(memoria: RefObject<number>, total: number) {
 
   function rotacao(p: number) {
     // A largura projetada é largura * cos(ângulo). Sua borda percorre p * largura.
-    return `rotateY(${direcao.current * Math.acos(1-p)}rad)`;
+    return `rotateY(${direcaoFisica.current * Math.acos(1-p)}rad)`;
   }
   function desenhar(valor: number) {
     const p = Math.max(0, Math.min(1, valor));
@@ -65,7 +65,7 @@ export function useVirada(memoria: RefObject<number>, total: number) {
     destino.current = avancar;
     function terminar() {
       if (avancar) {
-        memoria.current = pagina + direcao.current;
+        memoria.current = pagina + direcaoFisica.current * sentidoAvanco;
         flushSync(() => setPagina(memoria.current));
       }
       pararAnimacoes();
@@ -126,7 +126,7 @@ export function useVirada(memoria: RefObject<number>, total: number) {
       const dy = Math.abs(e.clientY-g.y);
       if (dy > 9 && dy > Math.abs(dx)) { cancelar(); return; }
       if (Math.abs(dx) < 10 || Math.abs(dx) <= dy) return;
-      if (!g.retomado && !prepararDirecao(Math.sign(dx))) {
+      if (!g.retomado && !prepararDirecao(Math.sign(dx) * sentidoAvanco)) {
         bloquearClique.current = true;
         gesto.current = null;
         return;
@@ -135,10 +135,10 @@ export function useVirada(memoria: RefObject<number>, total: number) {
       bloquearClique.current = true;
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-    g.velocidade = direcao.current * (e.clientX-g.ultimoX)/Math.max(1,e.timeStamp-g.instante);
+    g.velocidade = direcaoFisica.current * (e.clientX-g.ultimoX)/Math.max(1,e.timeStamp-g.instante);
     g.ultimoX = e.clientX;
     g.instante = e.timeStamp;
-    pendente.current = g.inicio + direcao.current*dx/g.largura;
+    pendente.current = g.inicio + direcaoFisica.current*dx/g.largura;
     if (!quadro.current) quadro.current = requestAnimationFrame(() => {
       quadro.current = 0;
       desenhar(pendente.current);
@@ -154,7 +154,7 @@ export function useVirada(memoria: RefObject<number>, total: number) {
     gesto.current = null;
     if (!g.arrastando) { if (g.retomado) assentar(destino.current); return; }
     cancelAnimationFrame(quadro.current);
-    desenhar(g.inicio + direcao.current*(e.clientX-g.x)/g.largura);
+    desenhar(g.inicio + direcaoFisica.current*(e.clientX-g.x)/g.largura);
     const p = progresso.current;
     const rapido = e.timeStamp-g.instante < 80 && g.velocidade > .55;
     assentar(p >= .35 || (p >= .12 && rapido));

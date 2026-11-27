@@ -11,6 +11,8 @@ export function ConfigurarViagem({
   pessoas: Pessoa[];
   reload: () => Promise<void>;
 }) {
+  const [participante, setParticipante] = useState("");
+  const pessoa = pessoas.find(p => String(p.vaga) === participante);
   const [aviso, setAviso] = useState("");
   const [busy, setBusy] = useState(false);
   async function salvar(e: FormEvent<HTMLFormElement>) {
@@ -38,6 +40,8 @@ export function ConfigurarViagem({
   return (
     <>
       <h1>Configurar viagem</h1>
+      <details className="ajustes-viagem">
+      <summary>Dados da viagem</summary>
       <form onSubmit={(e) => salvar(e)}>
         {(["nome", "inicio", "fim", "fuso"] as const).map((key, i) => (
           <label key={key}>
@@ -52,21 +56,17 @@ export function ConfigurarViagem({
         ))}
         <button disabled={busy}>Salvar viagem</button>
       </form>
+      </details>
       <a href="/ranking?nova">Registrar pontos de um jogo</a>
       <section>
         <h2>Participantes · {pessoas.filter((p) => p.usuario_id).length}/{pessoas.length}</h2>
-        <ol>
-          {pessoas.map((p) => (
-            <li key={p.vaga}>
-              {p.nome} ·{" "}
-              {p.vaga === 1
-                ? "Organizador"
-                : p.usuario_id
-                  ? "Cadastrado"
-                  : "Cadastro pendente"}
-            </li>
-          ))}
-        </ol>
+        <label>Consultar participante
+          <select value={participante} onChange={e => setParticipante(e.target.value)}>
+            <option value="">Escolha um nome</option>
+            {pessoas.map(p => <option key={p.vaga} value={p.vaga}>{p.nome}</option>)}
+          </select>
+        </label>
+        {pessoa && <p>{pessoa.vaga === 1 ? "Organizador" : pessoa.usuario_id ? "Cadastrado" : "Cadastro pendente"}</p>}
       </section>
       <p role="status">{aviso}</p>
     </>

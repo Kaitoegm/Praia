@@ -12,10 +12,11 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, corPessoal }
   memoria: RefObject<number>;
   donos?: { nome: string; cor: string }[];
 }) {
+  const sentidoAvanco = familia ? -1 : 1;
   const total = familia ? cores.length * 2 : 2;
-  const { livro, folha, sombra, pagina, virar, irPara, eventos } = useVirada(memoria, total);
+  const { livro, folha, sombra, pagina, virar, irPara, eventos } = useVirada(memoria, total, sentidoAvanco);
   const capitulo = Math.floor((pagina - 1) / 2);
-  return <section aria-label={familia ? "Livro da família" : `Álbum ${corPessoal}`}>
+  return <section className="livro-album" aria-label={familia ? "Livro da família" : `Álbum ${corPessoal}`}>
     {familia && <label className="indice-album">Capítulo
       <select value={capitulo} onChange={e => irPara(Number(e.target.value)*2+1)}>
         {cores.map(([cor],i) => {
@@ -32,7 +33,7 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, corPessoal }
         const largura = arte.larguras[lado-1];
         const colecao = familia ? fotos.filter(f => f.cor === cor) : fotos;
         return <div className="marinho-folha" ref={n === pagina ? folha : undefined} data-ativa={n === pagina}
-          data-vizinha={n-pagina} inert={n !== pagina} key={n} aria-label={`Página ${n}`}>
+          data-vizinha={(n-pagina) * sentidoAvanco} inert={n !== pagina} key={n} aria-label={`Página ${n}`}>
           <div className="arte-pagina" style={{width: `min(100%, ${largura / arte.altura * 100}cqh)`,aspectRatio:largura / arte.altura}}>
             {arte.quadros.map((m, i) => {
               if (m.pagina !== lado) return null;
@@ -54,9 +55,9 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, corPessoal }
       })}
     </div>
     <div className="marinho-controles">
-      <button disabled={pagina===1} onClick={()=>virar(-1)} aria-label="Página anterior"><ChevronRight/></button>
+      <button disabled={pagina===1} onClick={()=>virar(-1)} aria-label="Página anterior">{familia ? <ChevronLeft/> : <ChevronRight/>}</button>
       <span aria-live="polite">Página {pagina} de {total}</span>
-      <button disabled={pagina===total} onClick={()=>virar(1)} aria-label="Próxima página"><ChevronLeft/></button>
+      <button disabled={pagina===total} onClick={()=>virar(1)} aria-label="Próxima página">{familia ? <ChevronRight/> : <ChevronLeft/>}</button>
     </div>
   </section>;
 }
