@@ -86,7 +86,7 @@ function Area({ id }: { id: string }) {
     }
     setOnda(++sequenciaOnda.current);
     // A troca acontece quando a crista já cobriu a área.
-    esperaOnda.current = window.setTimeout(() => mostrar(destino), 175);
+    esperaOnda.current = window.setTimeout(() => mostrar(destino), 850);
   }
 
   useEffect(() => {
@@ -189,7 +189,18 @@ function Area({ id }: { id: string }) {
           onAnimationEnd={event => {
             if (event.target === event.currentTarget) setOnda(undefined);
           }}>
-          <i/><i/><i/>
+          {[
+            "M0 35 C52 35 74 9 124 9 S203 43 257 43 S326 20 400 20",
+            "M0 25 C55 25 77 46 132 46 S208 11 271 11 S347 35 400 35",
+            "M0 41 C54 41 83 17 144 17 S217 42 270 42 S345 10 400 10",
+          ].map(crista => (
+            <i key={crista}>
+              <svg viewBox="0 0 400 64" preserveAspectRatio="none">
+                <path d={crista + " V64 H0 Z"} fill="currentColor"/>
+                <path d={crista} fill="none" stroke="#FFFFFF" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
+              </svg>
+            </i>
+          ))}
         </div>
       )}
     </>

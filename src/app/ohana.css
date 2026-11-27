@@ -315,28 +315,24 @@ details[open] > summary .ohana-seta { rotate:180deg; }
   .botao-ohana:active, .shell button:enabled:not(.marinho-foto):active, .shell nav a:active { transform:none; }
 }
 
-/* Três cristas sobem em sequência e saem pelo topo, revelando a nova aba. */
+/* As cristas mantêm altura moderada mesmo em telas altas. */
 .ondas-navegacao {
   position:fixed; inset:0; z-index:5; overflow:hidden; pointer-events:none;
-  animation:ondas-fim 440ms linear;
+  animation:ondas-fim 1650ms linear;
 }
 .ondas-navegacao i {
-  position:absolute; inset:0 0 auto; height:calc(100% + 120px);
-  background:#a8dcd5; transform:translateY(100%);
-  animation:onda-navegar 400ms both;
+  position:absolute; inset:0 0 auto; height:calc(100% + 68px);
+  color:#79BCEC;
+  transform:translateY(100%);
+  animation:onda-navegar 1450ms both;
 }
-.ondas-navegacao i:nth-child(2) { background:#368e91; animation-delay:20ms; }
-.ondas-navegacao i:nth-child(3) { background:#103e50; animation-delay:40ms; }
-.ondas-navegacao i::before {
-  content:""; position:absolute; inset:0 0 auto; height:46px;
-  background:inherit; border-top:2px solid #fff9; border-radius:55% 42% 0 0 / 90% 70% 0 0;
-}
-.ondas-navegacao i { clip-path:ellipse(125% 100% at 48% 100%); }
-.ondas-navegacao i:nth-child(2) { clip-path:ellipse(110% 100% at 68% 100%); }
-.ondas-navegacao i:nth-child(3) { clip-path:ellipse(130% 100% at 24% 100%); }
+.ondas-navegacao i:nth-child(2) { color:#40B9AF; animation-delay:100ms; }
+.ondas-navegacao i:nth-child(3) { color:#193954; animation-delay:200ms; }
+.ondas-navegacao svg { display:block; width:100%; height:clamp(38px, 8dvh, 64px); }
+.ondas-navegacao i::after { content:""; position:absolute; inset:clamp(38px, 8dvh, 64px) 0 0; background:currentColor; }
 @keyframes onda-navegar {
-  0% { transform:translateY(100%); animation-timing-function:cubic-bezier(.37,0,.24,1); }
-  33%, 46% { transform:translateY(-115px); animation-timing-function:cubic-bezier(.45,0,.45,1); }
+  0% { transform:translateY(100%); animation-timing-function:cubic-bezier(.4,0,.22,1); }
+  44% { transform:translateY(-66px); animation-timing-function:cubic-bezier(.45,0,.42,1); }
   100% { transform:translateY(-105%); }
 }
 @keyframes ondas-fim { from, to { opacity:1; } }
