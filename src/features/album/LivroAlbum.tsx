@@ -5,6 +5,35 @@ import { arteDaCor, cores } from "./cores";
 import type { Pessoa } from "../acesso/client";
 import type { VagaFoto } from "./fotos";
 
+// A faixa externa da ilustração pode preencher o papel; cada abertura continua
+// com escala uniforme, inclusive quando está inclinada.
+function ajustarArte(arte: ReturnType<typeof arteDaCor>, lado: number) {
+  const largura = arte.larguras[lado - 1];
+  const altura = arte.altura;
+  const proporcao = 4 / 5;
+  const quadros = arte.quadros.filter(q => q.pagina === lado);
+  let margemX = .15, margemY = .15;
+  for (const q of quadros) {
+    const a = q.angulo * Math.PI / 180;
+    const dx = (Math.abs(Math.cos(a)) * q.w + Math.abs(Math.sin(a)) * q.h) / 2;
+    const dy = (Math.abs(Math.sin(a)) * q.w + Math.abs(Math.cos(a)) * q.h) / 2;
+    margemX = Math.min(margemX, (Math.min(q.x, largura-q.x) - dx) / largura);
+    margemY = Math.min(margemY, (Math.min(q.y, altura-q.y) - dy) / altura);
+  }
+  // Resguarda um pequeno contorno ao redor das fotos. Aproveita o restante
+  // da margem para acomodar ilustrações mais altas ou largas que a folha.
+  const x = Math.max(0, margemX - .005);
+  const y = Math.max(0, margemY - .005);
+  const escala = Math.min(Math.max(proporcao/largura, 1/altura),
+    proporcao / (largura * (1-2*x)), 1 / (altura * (1-2*y)));
+  const fracX = largura * escala / proporcao;
+  const fracY = altura * escala;
+  const bordaX = Math.max(0, (1-fracX)/2 + x*fracX);
+  const bordaY = Math.max(0, (1-fracY)/2 + y*fracY);
+  return { fracX, fracY, fatias: `${100*y}% ${100*x}% fill`,
+    bordas: `${100*bordaY}% ${100*bordaX}%` };
+}
+
 export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, corPessoal }: {
   corPessoal: string;
   fotos: VagaFoto[];
@@ -53,16 +82,17 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, cor
         const cor = familia ? cores[Math.floor((n-1)/2)][0] : corPessoal;
         const arte = arteDaCor(cor);
         const largura = arte.larguras[lado-1];
+        const ajuste = ajustarArte(arte, lado);
         const colecao = familia ? fotos.filter(f => f.cor === cor) : fotos;
         return <div className="marinho-folha" ref={n === pagina ? folha : undefined} data-ativa={n === pagina}
           data-vizinha={(n-pagina) * sentidoAvanco} inert={n !== pagina} key={n} aria-label={`Página ${n}`}>
-          <div className="arte-pagina" style={{width: `min(100%, ${largura / arte.altura * 100}cqh)`,aspectRatio:largura / arte.altura}}>
+          <div className="arte-pagina">
             {arte.quadros.map((m, i) => {
               if (m.pagina !== lado) return null;
               const foto = colecao.find(f => f.posicao === i + 1);
               return <button key={i} className="marinho-foto"
-                style={{left: m.x / largura * 100 + "%", top: m.y / arte.altura * 100 + "%",
-                  width: (m.w + 8) / largura * 100 + "%", height: (m.h + 8) / arte.altura * 100 + "%",
+                style={{left: (0.5 + (m.x/largura - 0.5)*ajuste.fracX) * 100 + "%", top: (0.5 + (m.y/arte.altura - 0.5)*ajuste.fracY) * 100 + "%",
+                  width: (m.w + 8) / largura * ajuste.fracX * 100 + "%", height: (m.h + 8) / arte.altura * ajuste.fracY * 100 + "%",
                   transform: `translate(-50%, -50%) rotate(${m.angulo}deg)`}}
                 disabled={!foto || (familia && !foto.foto)}
                 aria-label={!familia ? `Abrir foto ${i+1} de 9` : foto?.legenda || `Ver foto ${i+1} de ${cor}`}
@@ -70,7 +100,10 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, cor
                 {foto?.mini ? <img src={foto.mini} alt="" draggable={false} decoding="async" /> : !familia && <Camera size={20}/>}
               </button>;
             })}
-            <img className="marinho-arte" src={`/album/${cor.toLowerCase()}/${lado}.webp`} width={largura} height={arte.altura} alt="" draggable={false}/>
+            <div className="marinho-arte" aria-hidden="true" style={{
+              borderImageSource: `url("/album/${cor.toLowerCase()}/${lado}.webp")`,
+              borderImageSlice: ajuste.fatias, borderImageWidth: ajuste.bordas,
+            }}/>
           </div>
           <span className="marinho-sombra" ref={n === pagina ? sombra : undefined} aria-hidden="true" />
         </div>;

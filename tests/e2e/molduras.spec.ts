@@ -98,8 +98,8 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
         expect(medida.width).toBeCloseTo(area.width, 0);
         expect(medida.height).toBeCloseTo(area.height, 0);
         const arte = (await livro.locator('[data-ativa="true"] .arte-pagina').boundingBox())!;
-        expect(arte.width).toBeLessThanOrEqual(medida.width+1);
-        expect(arte.height).toBeLessThanOrEqual(medida.height+1);
+        expect(arte.width).toBeCloseTo(medida.width, 0);
+        expect(arte.height).toBeCloseTo(medida.height, 0);
       }
     }
   } finally {await f.limpar();}
