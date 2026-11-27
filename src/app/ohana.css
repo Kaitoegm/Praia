@@ -322,12 +322,12 @@ details[open] > summary .ohana-seta { rotate:180deg; }
 }
 .ondas-navegacao i {
   position:absolute; inset:0 0 auto; height:calc(100% + 68px);
-  color:#79BCEC;
+  color:#F8A48F;
   transform:translateY(100%);
   animation:onda-navegar 1450ms both;
 }
-.ondas-navegacao i:nth-child(2) { color:#40B9AF; animation-delay:100ms; }
-.ondas-navegacao i:nth-child(3) { color:#193954; animation-delay:200ms; }
+.ondas-navegacao i:nth-child(2) { color:#F3C979; animation-delay:100ms; }
+.ondas-navegacao i:nth-child(3) { color:#E97B6F; animation-delay:200ms; }
 .ondas-navegacao svg { display:block; width:100%; height:clamp(38px, 8dvh, 64px); }
 .ondas-navegacao i::after { content:""; position:absolute; inset:clamp(38px, 8dvh, 64px) 0 0; background:currentColor; }
 @keyframes onda-navegar {

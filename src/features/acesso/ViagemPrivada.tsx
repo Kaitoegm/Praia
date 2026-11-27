@@ -197,7 +197,7 @@ function Area({ id }: { id: string }) {
             <i key={crista}>
               <svg viewBox="0 0 400 64" preserveAspectRatio="none">
                 <path d={crista + " V64 H0 Z"} fill="currentColor"/>
-                <path d={crista} fill="none" stroke="#FFFFFF" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
+                <path d={crista} fill="none" stroke="#FFF5E2" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
               </svg>
             </i>
           ))}
