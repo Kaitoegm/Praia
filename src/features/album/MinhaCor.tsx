@@ -168,10 +168,10 @@ export function MinhaCor({
   return (
     <section className="missao caderno-pagina">
       <div className="album-abas">
-        <button aria-pressed={!familia} onClick={() => setFamilia(false)}>
+        <button data-guia="minha-cor" aria-pressed={!familia} onClick={() => setFamilia(false)}>
           <Camera size={16} /> Minha cor
         </button>
-        <button aria-pressed={familia} onClick={() => setFamilia(true)}>
+        <button data-guia="da-familia" aria-pressed={familia} onClick={() => setFamilia(true)}>
           <Images size={16} /> Da família
         </button>
       </div>

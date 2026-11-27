@@ -35,12 +35,27 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     await p.getByRole("button",{name:"Continuar na viagem"}).waitFor();
     const corRevelada = await p.locator(".sorteio-entrada [role=status]").innerText();
     await p.getByRole("button",{name:"Continuar na viagem"}).click();
-    const guia = p.getByRole("dialog", {name:"Bem-vindo ao OHANA!"});
+    const guia = p.locator(".tucano-tour");
     await expect(guia.locator("img")).toHaveAttribute("src", "/tucano-conversa.webp");
     await guia.getByRole("button", {name:"Próximo"}).click();
-    await expect(p.getByRole("dialog", {name:"Agenda"}).locator("img")).toHaveAttribute("src", "/tucano-aponta.webp");
-    await p.keyboard.press("Escape");
-    await expect(p.getByRole("dialog")).toHaveCount(0);
+    await expect(guia.locator("img")).toHaveAttribute("src", "/tucano-aponta.webp");
+    await guia.getByRole("button", {name:"Próximo"}).click();
+    await expect(guia.getByRole("heading", {name:"Jogos"})).toBeVisible();
+    await guia.getByRole("button", {name:"Próximo"}).click();
+    await expect(guia.getByText("Toque na aba Álbum para avançar.")).toBeVisible();
+    await p.getByRole("link", {name:"Álbum",exact:true}).click();
+    await expect(guia.getByRole("heading", {name:"Minha cor"})).toBeVisible();
+    const destaque = p.locator('[data-guia="minha-cor"]');
+    await expect(destaque).toHaveClass(/driver-active-element/);
+    for (const width of [320, 768, 1280, 390]) {
+      await p.setViewportSize({width,height:800});
+      await expect.poll(async () => {
+        const caixa = await guia.boundingBox();
+        return Boolean(caixa && caixa.x >= 0 && caixa.x + caixa.width <= width + 1 && caixa.y >= 0 && caixa.y + caixa.height <= 801);
+      }).toBe(true);
+    }
+    await guia.getByRole("button", {name:"Pular guia"}).click();
+    await expect(guia).toHaveCount(0);
     await expect(p.locator(".postal-cor h1")).toContainText(corRevelada);
     await expect(p).toHaveURL(/\/album$/);
     await expect(p.getByRole("heading", {name: /^Sua cor é .+/})).toBeVisible();

@@ -2,7 +2,6 @@ import { Settings } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CalendarDays, Camera, Trophy, UserRound } from "lucide-react";
 import { Marca } from "../../app/Marca";
-import { GuiaTucano } from "./GuiaTucano";
 import { Perfil } from "./Perfil";
 import { db, type Pessoa, type Viagem } from "./client";
 import { Entrada } from "./Entrada";
@@ -13,6 +12,7 @@ import { ConfigurarViagem } from "../viagem/ConfigurarViagem";
 
 import { RoletaCor } from "./RoletaCor";
 
+const GuiaTucano = lazy(() => import("./GuiaTucano").then(m => ({default:m.GuiaTucano})));
 const Agenda = lazy(() => import("../agenda/Agenda").then(m => ({ default: m.Agenda })));
 
 export function ViagemPrivada() {
@@ -153,6 +153,7 @@ function Area({ id }: { id: string }) {
               <Ranking pessoas={pessoas} eu={eu} fuso={viagem.fuso} />
             ) : path === "/album" ? (
               <MinhaCor
+                key={url}
                 usuario={id}
                 pessoas={pessoas}
                 minhaVaga={eu?.vaga ?? 0}
@@ -176,7 +177,8 @@ function Area({ id }: { id: string }) {
               event.preventDefault();
               if (location.pathname === href) setVisita(n => n + 1);
               if (location.pathname + location.search !== href) history.pushState(null, "", href);
-              navegar(href);
+              if (guia) mostrar(href);
+              else navegar(href);
               if (Date.now() - ultimaConsulta.current > 30000) void reload();
             }}
             key={href}
@@ -187,12 +189,15 @@ function Area({ id }: { id: string }) {
           </a>
         ))}
       </nav>
-      {guia && <GuiaTucano fechar={() => {
+      {guia && <Suspense fallback={null}><GuiaTucano abrirTela={destino => {
+        if (location.pathname + location.search !== destino) history.pushState(null, "", destino);
+        mostrar(destino);
+      }} fechar={() => {
         sessionStorage.removeItem("ohana-guia-pendente");
         setGuia(false);
-      }} />}
+      }} /></Suspense>}
       {onda && (
-        <div key={onda} className="ondas-navegacao" aria-hidden="true"
+        <div key={`onda-${onda}`} className="ondas-navegacao" aria-hidden="true"
           onAnimationEnd={event => {
             if (event.target === event.currentTarget) setOnda(undefined);
           }}>

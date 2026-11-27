@@ -132,6 +132,7 @@ export function Avisos({ id }: { id: string }) {
     <aside className="avisos">
       <button
         className="sino"
+        data-guia="avisos"
         aria-label="Notificações"
         aria-expanded={aberto}
         onClick={abrir}
