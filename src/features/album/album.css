@@ -51,8 +51,7 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 
 .marinho-livro { position:relative; aspect-ratio:688/768; overflow:hidden; border-radius:6px; touch-action:pan-y pinch-zoom; user-select:none; }
 .marinho-folha { position:absolute; inset:0; background:#ece9df; isolation:isolate; overflow:hidden; }
-.marinho-folha[data-ativa=true] { z-index:2; transform-origin:right center; transform:rotateY(0deg); backface-visibility:hidden; }
-.marinho-livro[data-sentido="-1"] .marinho-folha[data-ativa=true] { transform-origin:left center; }
+.marinho-folha[data-ativa=true] { z-index:2; transform-origin:left center; transform:rotateY(0deg); backface-visibility:hidden; }
 .marinho-sombra { position:absolute; inset:0; pointer-events:none; z-index:2; background:linear-gradient(to right,transparent,#081d2e); opacity:0; }
 .marinho-livro[data-sentido="-1"] .marinho-sombra { background:linear-gradient(to left,transparent,#081d2e); }
 .marinho-arte { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
@@ -79,3 +78,5 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 .editor-corte { display:grid; gap:8px; }
 .janela-corte { position:relative; justify-self:center; overflow:hidden; touch-action:none; user-select:none; background:#efe8dc; }
 .janela-corte img { position:absolute; max-width:none; max-height:none; pointer-events:none; }
+
+.marinho-livro > .marinho-folha[data-folheando=true] { z-index:3; transform-origin:left center; backface-visibility:hidden; }

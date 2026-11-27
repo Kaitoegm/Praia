@@ -20,11 +20,20 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     id: number; x: number; y: number; largura: number; inicio: number;
     retomado: boolean; arrastando: boolean; ultimoX: number; instante: number; velocidade: number;
   } | null>(null);
+  const papelMovel = useRef<HTMLDivElement | null>(null);
+  function limparPapel() {
+    papelMovel.current?.style.removeProperty("transform");
+    papelMovel.current?.querySelector<HTMLElement>(".marinho-sombra")?.style.removeProperty("opacity");
+    papelMovel.current?.removeAttribute("data-folheando");
+    papelMovel.current = null;
+  }
   const direcaoFisica = useRef<number>(sentidoAvanco);
   function prepararDirecao(sentido: number) {
     if (pagina + sentido < 1 || pagina + sentido > total) return false;
     direcaoFisica.current = sentido * sentidoAvanco;
     if (livro.current) livro.current.dataset.sentido = String(direcaoFisica.current);
+    papelMovel.current = direcaoFisica.current < 0 ? folha.current
+      : livro.current?.querySelector<HTMLDivElement>('[data-vizinha="1"]') ?? null;
     return true;
   }
   function irPara(n: number) {
@@ -33,22 +42,24 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     gesto.current = null;
     pararAnimacoes();
     progresso.current = 0;
-    folha.current?.style.removeProperty("transform");
-    sombra.current?.style.removeProperty("opacity");
+    limparPapel();
     memoria.current = n;
     setPagina(n);
   }
 
   function rotacao(p: number) {
     // A largura projetada é largura * cos(ângulo). Sua borda percorre p * largura.
-    return `rotateY(${direcaoFisica.current * Math.acos(1-p)}rad)`;
+    return `rotateY(${-Math.acos(direcaoFisica.current < 0 ? 1-p : p)}rad)`;
   }
+  const intensidade = (p: number) => (direcaoFisica.current < 0 ? p : 1-p) * .42;
   function desenhar(valor: number) {
     const p = Math.max(0, Math.min(1, valor));
     progresso.current = p;
-    if (!movimentoReduzido.current && folha.current && sombra.current) {
-      folha.current.style.transform = rotacao(p);
-      sombra.current.style.opacity = String(p * .42);
+    if (!movimentoReduzido.current && papelMovel.current) {
+      papelMovel.current.dataset.folheando = "true";
+      papelMovel.current.style.transform = rotacao(p);
+      const luz = papelMovel.current.querySelector<HTMLElement>(".marinho-sombra");
+      if (luz) luz.style.opacity = String(intensidade(p));
     }
   }
   function pararAnimacoes() {
@@ -61,8 +72,8 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     cancelAnimationFrame(quadro.current);
     quadro.current = 0;
     pararAnimacoes();
-    const papel = folha.current;
-    const tinta = sombra.current;
+    const papel = papelMovel.current;
+    const tinta = papel?.querySelector<HTMLElement>(".marinho-sombra");
     const de = progresso.current;
     const para = avancar ? 1 : 0;
     if (!papel || !tinta) return;
@@ -73,26 +84,26 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
         flushSync(() => setPagina(memoria.current));
       }
       pararAnimacoes();
-      papel!.style.removeProperty("transform");
-      tinta!.style.removeProperty("opacity");
+      limparPapel();
       progresso.current = 0;
     }
     if (movimentoReduzido.current || de === para) { terminar(); return; }
-    if (avancar && de === 0 && livro.current) {
+    if (avancar && de === 0 && direcaoFisica.current < 0 && livro.current) {
       const vizinha = livro.current.querySelector<HTMLDivElement>(
         `[data-vizinha="${direcaoFisica.current}"]`,
       );
       if (vizinha) {
-        limparTurn.current = virarComTurn(livro.current, papel, vizinha, direcaoFisica.current > 0, () => {
+        limparTurn.current = virarComTurn(livro.current, papel, vizinha, false, () => {
           limparTurn.current = undefined;
           terminar();
         });
         if (limparTurn.current) return;
       }
     }
+    papel.dataset.folheando = "true";
     const opcoes = {duration: Math.max(90, 240 * Math.abs(para - de)), easing:"cubic-bezier(.2,.65,.3,1)", fill:"forwards" as const};
     const giro = papel.animate([{transform:rotacao(de)}, {transform:rotacao(para)}], opcoes);
-    const luz = tinta.animate([{opacity:de*.42}, {opacity:para*.42}], opcoes);
+    const luz = tinta.animate([{opacity:intensidade(de)}, {opacity:intensidade(para)}], opcoes);
     animacoes.current = [giro, luz];
     giro.onfinish = () => { if (animacoes.current[0] === giro) terminar(); };
   }
@@ -106,8 +117,7 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
       progresso.current = 0;
       quadro.current = 0;
       pararAnimacoes();
-      folha.current?.style.removeProperty("transform");
-      sombra.current?.style.removeProperty("opacity");
+      limparPapel();
     }
     window.addEventListener("blur", interromper);
     window.addEventListener("orientationchange", interromper);
@@ -124,10 +134,11 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     cancelAnimationFrame(quadro.current);
     quadro.current = 0;
     atualizarPreferencia();
-    const retomando = animacoes.current.length > 0 && folha.current;
-    if (retomando && folha.current) {
-      const transform = getComputedStyle(folha.current).transform;
-      const p = transform === "none" ? 0 : 1 - new DOMMatrixReadOnly(transform).m11;
+    const retomando = animacoes.current.length > 0 && papelMovel.current;
+    if (retomando && papelMovel.current) {
+      const transform = getComputedStyle(papelMovel.current).transform;
+      const largura = transform === "none" ? 1 : new DOMMatrixReadOnly(transform).m11;
+      const p = direcaoFisica.current < 0 ? 1-largura : largura;
       pararAnimacoes();
       desenhar(p);
     }

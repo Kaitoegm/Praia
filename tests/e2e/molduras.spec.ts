@@ -27,9 +27,10 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
     await page.mouse.move(x,y);
     await page.mouse.down();
     await page.mouse.move(x + caixa.width * .2,y,{steps:8});
-    const folha = livro.locator('[data-ativa="true"]');
-    await expect.poll(async () => (await folha.boundingBox())!.x - caixa.x)
-      .toBeCloseTo(caixa.width * .2, -1);
+    const folha = livro.locator('[data-folheando="true"]');
+    await expect(folha).toHaveCount(1);
+    await expect.poll(async () => (await folha.boundingBox())!.x - caixa.x).toBeCloseTo(0, 0);
+    await expect.poll(async () => (await folha.boundingBox())!.width).toBeCloseTo(caixa.width * .2, -1);
     await page.mouse.move(x,y,{steps:5});
     await page.mouse.up();
     await arrastar(.08);
@@ -72,17 +73,20 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
     await expect(indice.locator("option")).toHaveCount(13);
     await livro.scrollIntoViewIfNeeded();
     const area = (await livro.boundingBox())!;
+    await page.emulateMedia({reducedMotion:"no-preference"});
     async function folhearFamilia(de: number, para: number) {
       const altura = area.y + area.height * .5;
       await page.mouse.move(area.x + area.width * de, altura);
       await page.mouse.down();
       await page.mouse.move(area.x + area.width * para, altura, { steps: 8 });
+      await expect.poll(async () => (await folha.boundingBox())!.x - area.x).toBeCloseTo(0, 0);
       await page.mouse.up();
     }
     await folhearFamilia(.75, .25);
     await expect(page.getByText("Página 2 de 26")).toBeVisible();
     await folhearFamilia(.25, .75);
     await expect(page.getByText("Página 1 de 26")).toBeVisible();
+    await page.emulateMedia({reducedMotion:"reduce"});
     await indice.selectOption("5");
     await expect(page.getByText("Página 11 de 26")).toBeVisible();
     await page.getByRole("button",{name:"Próxima página"}).click();
