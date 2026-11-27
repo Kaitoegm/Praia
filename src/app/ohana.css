@@ -349,3 +349,26 @@ details[open] > summary .ohana-seta { rotate:180deg; }
   width:9px; z-index:4;
   background:linear-gradient(90deg,#33221355,transparent);
 }
+
+.marca-ohana img { width:46px; height:46px; object-fit:contain; border-radius:0; }
+.entrada-viajante .capa-entrada img { mask-image:none; }
+.sorteio-selo { border:0; box-shadow:none; background:transparent; }
+dialog.guia-tucano {
+  width:min(calc(100% - 24px), 450px); max-height:calc(100dvh - 32px);
+  padding:14px; border:1px solid var(--borda); border-radius:22px;
+  background:var(--papel); color:var(--marinho);
+}
+.guia-tucano::backdrop { background:#112d4088; }
+.guia-cena { display:grid; grid-template-columns: minmax(65px,27%) 1fr; gap:10px; align-items:end; }
+.guia-cena img { align-self:end; width:100%; height:auto; }
+.guia-balao { position:relative; background:#fff; border:1px solid var(--borda); padding:12px; border-radius:16px; }
+.guia-balao::before {
+  content:""; position:absolute; left:-7px; bottom:22px; width:12px; height:12px;
+  background:#fff; border-left:1px solid var(--borda); border-bottom:1px solid var(--borda); rotate:45deg;
+}
+.guia-balao h2 { margin:0; font-size:1.25rem; }
+.guia-balao p { margin:5px 0 0; }
+.guia-acoes { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:12px; }
+.guia-acoes button { font:inherit; cursor:pointer; }
+@media (prefers-reduced-motion:no-preference) { .guia-cena { animation:ohana-revelar 150ms ease-out both; } }
+.guia-fechar { display:grid; place-items:center; width:44px; height:44px; margin:-8px -6px 0 auto; border:0; background:transparent; color:var(--marinho); cursor:pointer; }

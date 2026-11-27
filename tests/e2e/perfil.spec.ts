@@ -35,6 +35,12 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     await p.getByRole("button",{name:"Continuar na viagem"}).waitFor();
     const corRevelada = await p.locator(".sorteio-entrada [role=status]").innerText();
     await p.getByRole("button",{name:"Continuar na viagem"}).click();
+    const guia = p.getByRole("dialog", {name:"Bem-vindo ao OHANA!"});
+    await expect(guia.locator("img")).toHaveAttribute("src", "/tucano-conversa.webp");
+    await guia.getByRole("button", {name:"Próximo"}).click();
+    await expect(p.getByRole("dialog", {name:"Agenda"}).locator("img")).toHaveAttribute("src", "/tucano-aponta.webp");
+    await p.keyboard.press("Escape");
+    await expect(p.getByRole("dialog")).toHaveCount(0);
     await expect(p.locator(".postal-cor h1")).toContainText(corRevelada);
     await expect(p).toHaveURL(/\/album$/);
     await expect(p.getByRole("heading", {name: /^Sua cor é .+/})).toBeVisible();

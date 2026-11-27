@@ -84,7 +84,7 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
   return (
     <div className="entrada-viajante">
       <header className="capa-entrada">
-        <h1><img src="/ohana-capa.webp" alt="OHANA · おはな" /></h1>
+        <h1><img src="/ohana-marca.webp" alt="OHANA" /></h1>
       </header>
       <section>
         {acesso ? <>

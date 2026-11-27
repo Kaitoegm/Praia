@@ -5,8 +5,10 @@ import { FotoPerfil } from "./FotoPerfil";
 export function Perfil({
   pessoa,
   reload,
+  abrirGuia,
 }: {
   pessoa: Pessoa;
+  abrirGuia: () => void;
   reload: () => Promise<void>;
 }) {
   const [foto, setFoto] = useState<File | null>(null),
@@ -49,6 +51,7 @@ export function Perfil({
         if (error) setMsg("Não foi possível trocar de viajante. Tente novamente.");
         else location.replace("/entrar");
       }}><UsersRound size={17} aria-hidden="true"/> Trocar de viajante</button>
+      <button className="botao-ohana botao-ohana--secundario" onClick={abrirGuia}>Ver guia do tucano</button>
       <p role="status">{msg === "Foto de perfil atualizada." && <Check className="ohana-revela" size={17} aria-hidden="true"/>}{msg}</p>
     </section>
   );

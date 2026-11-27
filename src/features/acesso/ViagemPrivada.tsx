@@ -2,6 +2,7 @@ import { Settings } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CalendarDays, Camera, Trophy, UserRound } from "lucide-react";
 import { Marca } from "../../app/Marca";
+import { GuiaTucano } from "./GuiaTucano";
 import { Perfil } from "./Perfil";
 import { db, type Pessoa, type Viagem } from "./client";
 import { Entrada } from "./Entrada";
@@ -21,6 +22,7 @@ export function ViagemPrivada() {
     setSorteio(id);
   }
   function continuar() {
+    sessionStorage.setItem("ohana-guia-pendente", sorteio ?? "");
     sessionStorage.removeItem("ohana-primeira-cor");
     setSorteio(null);
   }
@@ -58,6 +60,7 @@ export function ViagemPrivada() {
   );
 }
 function Area({ id }: { id: string }) {
+  const [guia, setGuia] = useState(() => sessionStorage.getItem("ohana-guia-pendente") === id);
   const [viagem, setViagem] = useState<Viagem | null>(null);
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [erro, setErro] = useState(false);
@@ -139,7 +142,7 @@ function Area({ id }: { id: string }) {
         ) : !viagem ? (
           <p>Carregando viagem…</p>
         ) : path === "/perfil" && eu ? (
-          <Perfil pessoa={eu} reload={reload} />
+          <Perfil pessoa={eu} reload={reload} abrirGuia={() => setGuia(true)} />
         ) : path === "/configurar" && eu?.vaga === 1 ? (
           <ConfigurarViagem viagem={viagem} pessoas={pessoas} reload={reload} />
         ) : (
@@ -184,6 +187,10 @@ function Area({ id }: { id: string }) {
           </a>
         ))}
       </nav>
+      {guia && <GuiaTucano fechar={() => {
+        sessionStorage.removeItem("ohana-guia-pendente");
+        setGuia(false);
+      }} />}
       {onda && (
         <div key={onda} className="ondas-navegacao" aria-hidden="true"
           onAnimationEnd={event => {
