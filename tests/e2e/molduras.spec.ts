@@ -35,7 +35,7 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
     await arrastar(.08);
     await expect(page.getByText("Página 1 de 2")).toBeVisible();
     await arrastar(.50);
-    await expect(livro.locator(".virada-turn .turn-page-wrapper")).toHaveCount(2);
+    await expect(livro.locator(".virada-turn")).toHaveCount(0);
     await expect(page.getByText("Página 2 de 2")).toBeVisible();
     if (browserName === "chromium") {
       const cdp = await page.context().newCDPSession(page);
@@ -53,6 +53,11 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
       await expect(page.getByText("Página 2 de 2")).toBeVisible();
       await cdp.detach();
     }
+    await page.getByRole("button",{name:"Página anterior"}).click();
+    await expect(livro.locator(".virada-turn .turn-page-wrapper")).toHaveCount(2);
+    await expect(page.getByText("Página 1 de 2")).toBeVisible();
+    await page.getByRole("button",{name:"Próxima página"}).click();
+    await expect(page.getByText("Página 2 de 2")).toBeVisible();
     await page.emulateMedia({reducedMotion:"reduce"});
     await page.getByRole("button",{name:"Página anterior"}).click();
     await expect(page.getByText("Página 1 de 2")).toBeVisible();

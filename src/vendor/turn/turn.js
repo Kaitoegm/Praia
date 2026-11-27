@@ -1888,7 +1888,7 @@ $.extend($.fn, {
 		var data = this.data();
 
 		if (data.effect)
-			clearInterval(data.effect.handle);
+			cancelAnimationFrame(data.effect.handle);
 
 		if (point) {
 
@@ -1899,11 +1899,10 @@ $.extend($.fn, {
 			var j, diff = [],
 				len = point.to.length,
 				that = this,
-				fps = point.fps || 30,
-				time = - fps,
-				f = function() {
+				started = performance.now(),
+				f = function(now) {
 					var j, v = [];
-					time = Math.min(point.duration, time + fps);
+					var time = Math.min(point.duration, Math.max(0, now - started));
 
 					for (j = 0; j < len; j++)
 						v.push(point.easing(1, time, point.from[j], diff[j], point.duration));
@@ -1911,21 +1910,21 @@ $.extend($.fn, {
 					point.frame((len==1) ? v[0] : v);
 
 					if (time==point.duration) {
-						clearInterval(data.effect.handle);
 						delete data['effect'];
 						that.data(data);
 						if (point.complete)
 							point.complete();
-						}
+					} else if (data.effect === point) {
+						point.handle = requestAnimationFrame(f);
+					}
 					};
 
 			for (j = 0; j < len; j++)
 				diff.push(point.to[j] - point.from[j]);
 
 			data.effect = point;
-			data.effect.handle = setInterval(f, fps);
+			data.effect.handle = requestAnimationFrame(f);
 			this.data(data);
-			f();
 		} else {
 			delete data['effect'];
 		}

@@ -31,9 +31,9 @@ export function virarComTurn(livro: HTMLDivElement, atual: HTMLDivElement, segui
   }
   try {
     turn.turn({display:"single", width:livro.clientWidth, height:livro.clientHeight,
-      duration:1000, gradients:true, programmatic:true});
+      duration:360, gradients:true, programmatic:true});
     turn.one("turned", terminar);
-    timer = window.setTimeout(terminar, 1200);
+    timer = window.setTimeout(terminar, 520);
     turn.turn("page", 2);
     return limpar;
   } catch {

@@ -78,7 +78,7 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
       progresso.current = 0;
     }
     if (movimentoReduzido.current || de === para) { terminar(); return; }
-    if (avancar && livro.current) {
+    if (avancar && de === 0 && livro.current) {
       const vizinha = livro.current.querySelector<HTMLDivElement>(
         `[data-vizinha="${direcaoFisica.current}"]`,
       );
