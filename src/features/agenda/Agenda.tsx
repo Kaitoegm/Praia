@@ -182,7 +182,7 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
             <p className="empty">Dia livre na praia.</p>
           ) : (
             [lista.find(a => a.id === atividadeId) ?? lista[0]].map((a) => (
-              <article key={a.id} className="atividade" data-cancelada={a.cancelada}>
+              <article key={a.id} className="atividade ohana-revela" data-cancelada={a.cancelada}>
                 <time dateTime={a.inicio}>{hora(a.inicio, viagem.fuso)}</time>
                 <div>
                   <h3>{a.titulo}</h3>
@@ -203,7 +203,7 @@ export function Agenda({ viagem, admin }: { viagem: Viagem; admin: boolean }) {
             ))
           )}
           {admin && (
-            <button onClick={() => setEditor("nova")}>
+            <button className="botao-ohana" onClick={() => setEditor("nova")}>
               Adicionar atividade
             </button>
           )}

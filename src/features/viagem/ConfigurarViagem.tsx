@@ -1,3 +1,4 @@
+import { Trophy } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { db, type Viagem, type Pessoa } from "../acesso/client";
 
@@ -41,7 +42,7 @@ export function ConfigurarViagem({
     <>
       <h1>Configurar viagem</h1>
       <details className="ajustes-viagem">
-      <summary>Dados da viagem</summary>
+      <summary>Dados da viagem <span className="ohana-seta" aria-hidden="true">⌄</span></summary>
       <form onSubmit={(e) => salvar(e)}>
         {(["nome", "inicio", "fim", "fuso"] as const).map((key, i) => (
           <label key={key}>
@@ -57,7 +58,7 @@ export function ConfigurarViagem({
         <button disabled={busy}>Salvar viagem</button>
       </form>
       </details>
-      <a href="/ranking?nova">Registrar pontos de um jogo</a>
+      <a href="/ranking?nova" className="botao-ohana"><Trophy size={17} aria-hidden="true"/> Registrar pontos de um jogo</a>
       <section>
         <h2>Participantes · {pessoas.filter((p) => p.usuario_id).length}/{pessoas.length}</h2>
         <label>Consultar participante
@@ -68,7 +69,7 @@ export function ConfigurarViagem({
         </label>
         {pessoa && <p>{pessoa.vaga === 1 ? "Organizador" : pessoa.usuario_id ? "Cadastrado" : "Cadastro pendente"}</p>}
       </section>
-      <p role="status">{aviso}</p>
+      <p role="status"><span key={aviso} className="ohana-revela">{aviso}</span></p>
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { Settings } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CalendarDays, Camera, Trophy, UserRound } from "lucide-react";
 import { Marca } from "../../app/Marca";
@@ -65,11 +66,36 @@ function Area({ id }: { id: string }) {
   const ultimaConsulta = useRef(0);
   const consultaAtual = useRef(0);
   const principal = useRef<HTMLElement>(null);
+  const [onda, setOnda] = useState<number>();
+  const sequenciaOnda = useRef(0);
+  const esperaOnda = useRef<number | undefined>(undefined);
+
+  function mostrar(destino: string) {
+    setUrl(destino);
+    principal.current?.focus({ preventScroll: true });
+    principal.current?.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+  }
+
+  function navegar(destino: string) {
+    window.clearTimeout(esperaOnda.current);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || destino === url) {
+      setOnda(undefined);
+      mostrar(destino);
+      return;
+    }
+    setOnda(++sequenciaOnda.current);
+    // A troca acontece quando a crista já cobriu a área.
+    esperaOnda.current = window.setTimeout(() => mostrar(destino), 175);
+  }
+
   useEffect(() => {
-    const voltar = () => setUrl(location.pathname + location.search);
+    const voltar = () => navegar(location.pathname + location.search);
     window.addEventListener("popstate", voltar);
     return () => window.removeEventListener("popstate", voltar);
-  }, []);
+  }, [url]);
+
+  useEffect(() => () => window.clearTimeout(esperaOnda.current), []);
   async function reload() {
     const consulta = ++consultaAtual.current;
     ultimaConsulta.current = Date.now();
@@ -134,7 +160,7 @@ function Area({ id }: { id: string }) {
                 <p className="empty">Página indisponível.</p>
               </section>
             )}
-            {eu?.vaga === 1 && <a href="/configurar">Configurar viagem</a>}
+            {eu?.vaga === 1 && <a href="/configurar" className="botao-ohana"><Settings size={17} aria-hidden="true"/> Configurar viagem</a>}
           </>
         )}
       </main>
@@ -147,10 +173,8 @@ function Area({ id }: { id: string }) {
               event.preventDefault();
               if (location.pathname === href) setVisita(n => n + 1);
               if (location.pathname + location.search !== href) history.pushState(null, "", href);
-              setUrl(href);
+              navegar(href);
               if (Date.now() - ultimaConsulta.current > 30000) void reload();
-              principal.current?.focus({ preventScroll: true });
-              window.scrollTo(0, 0);
             }}
             key={href}
             aria-current={path === href ? "page" : undefined}
@@ -160,6 +184,14 @@ function Area({ id }: { id: string }) {
           </a>
         ))}
       </nav>
+      {onda && (
+        <div key={onda} className="ondas-navegacao" aria-hidden="true"
+          onAnimationEnd={event => {
+            if (event.target === event.currentTarget) setOnda(undefined);
+          }}>
+          <i/><i/><i/>
+        </div>
+      )}
     </>
   );
 }

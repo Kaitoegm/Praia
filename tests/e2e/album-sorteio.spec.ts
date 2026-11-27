@@ -27,8 +27,10 @@ test("familiar recebe sua cor no cadastro e reencontra sua missão em outro nave
     });
     const outro = await abrir(f.familiar);
     await expect(outro.locator(".postal-cor h1")).toHaveText(cor, { useInnerText: true });
-    await expect(outro.locator(".grid li")).toHaveCount(9);
-    await expect(outro.getByText("Foto 9 de 9")).toBeVisible();
+    await expect(outro.locator(".marinho-foto")).toHaveCount(9);
+    await outro.emulateMedia({reducedMotion:"reduce"});
+    await outro.getByRole("button",{name:"Próxima página"}).click();
+    await expect(outro.getByRole("button",{name:"Abrir foto 9 de 9"})).toBeVisible();
   } finally {
     await f.limpar();
   }

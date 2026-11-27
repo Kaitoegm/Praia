@@ -1,3 +1,4 @@
+import { Check, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { db, type Pessoa } from "./client";
 import { FotoPerfil } from "./FotoPerfil";
@@ -42,7 +43,13 @@ export function Perfil({
           Salvar foto
         </button>
       )}
-      <p role="status">{msg}</p>
+      <button className="botao-ohana botao-ohana--secundario" disabled={busy} onClick={async () => {
+        if (foto && !window.confirm("Trocar de viajante e descartar a foto de perfil selecionada?")) return;
+        const { error } = await db.auth.signOut({scope:"local"});
+        if (error) setMsg("Não foi possível trocar de viajante. Tente novamente.");
+        else location.replace("/entrar");
+      }}><UsersRound size={17} aria-hidden="true"/> Trocar de viajante</button>
+      <p role="status">{msg === "Foto de perfil atualizada." && <Check className="ohana-revela" size={17} aria-hidden="true"/>}{msg}</p>
     </section>
   );
 }

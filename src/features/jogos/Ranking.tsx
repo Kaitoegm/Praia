@@ -67,6 +67,8 @@ export function Ranking({
   const [busy, setBusy] = useState(false);
   const [grupo, setGrupo] = useState(0);
   const [historico, setHistorico] = useState("");
+  const ultimaLeitura = useRef<Resultado[] | null>(null);
+  const [anteriorRows, setAnteriorRows] = useState<Resultado[]>([]);
   const seq = useRef(0);
   const reload = useCallback(async () => {
     const n = ++seq.current;
@@ -74,6 +76,10 @@ export function Ranking({
     if (n !== seq.current) return;
     if (error) setErro("Não foi possível atualizar os resultados.");
     else {
+      if (JSON.stringify(ultimaLeitura.current) !== JSON.stringify(data)) {
+        setAnteriorRows(ultimaLeitura.current ?? data);
+        ultimaLeitura.current = data;
+      }
       setRows(data);
       setErro("");
     }
@@ -120,6 +126,7 @@ export function Ranking({
     );
   }
   const inscritos = pessoas.filter((p) => p.usuario_id && p.avatar);
+  const anterior = classificar(inscritos, anteriorRows);
   const porPagina = 4;
   const paginas = Math.ceil(inscritos.length / porPagina);
   const inicio = Math.max(0, Math.min(grupo, paginas - 1)) * porPagina;
@@ -152,7 +159,7 @@ export function Ranking({
           {erro} <button onClick={reload}>Tentar novamente</button>
         </p>
       )}
-      <p role="status">{status}</p>
+      <p role="status"><span key={status} className="ohana-revela">{status}</span></p>
       {rows === null ? (
         !erro && <p>Carregando resultados…</p>
       ) : (
@@ -167,7 +174,9 @@ export function Ranking({
           </label>}
           <ol className="placar" aria-label="Classificação">
             {classificar(inscritos, rows).slice(inicio, inicio + porPagina).map((p) => (
-              <li key={p.vaga} data-lider={p.posicao === 1 && p.total > 0}>
+              <li key={p.vaga + ":" + p.total + ":" + p.posicao}
+                data-atualizado={anterior.some(a => a.vaga === p.vaga && (a.total !== p.total || a.posicao !== p.posicao))}
+                data-lider={p.posicao === 1 && p.total > 0}>
                 <b>{p.posicao}º</b>
                 {p.avatar?<img className="avatar-ranking" src={p.avatar} alt={'Foto de '+p.nome}/>:<span className="avatar-ranking iniciais" aria-hidden="true">{p.nome.slice(0,1)}</span>}
                 <strong>
@@ -187,7 +196,7 @@ export function Ranking({
           {(rodadaAtual ? [rodadaAtual] : []).map((r) => (
             <details key={r.id}>
               <summary>
-                {r.jogo} · {r.titulo}
+                {r.jogo} · {r.titulo} <span className="ohana-seta" aria-hidden="true">⌄</span>
               </summary>
               <small>{data(r.criada_em)}</small>
               {Object.entries(r.pontos).map(([k, valor]) => {

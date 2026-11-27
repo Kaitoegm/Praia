@@ -282,3 +282,62 @@ nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); backgro
   .livro-album .palco-album { flex:1; min-height:155px; container-type:size; }
   .livro-album .palco-album .marinho-livro { width:min(100%, 80cqh); flex:none; min-height:0; }
 }
+
+.botao-ohana, .shell main button.botao-ohana {
+  display:inline-flex; align-items:center; justify-content:center; gap:.45rem;
+  min-height:44px; padding:8px 14px; border:1px solid var(--marinho); border-radius:12px;
+  background:var(--marinho); color:white; font-weight:600; text-decoration:none;
+}
+.botao-ohana--secundario, .shell main button.botao-ohana--secundario {
+  border-color:var(--borda); background:var(--papel); color:var(--marinho);
+}
+.botao-ohana:disabled { opacity:.65; }
+.botao-ohana, .shell button, .shell nav a { transition:transform 90ms ease-out, background-color 150ms ease-out; }
+.botao-ohana:active, .shell button:enabled:not(.marinho-foto):active, .shell nav a:active { transform:scale(.97); }
+.ohana-revela, .caixa-avisos, .toast-album { animation:ohana-revelar 150ms ease-out both; }
+@keyframes ohana-revelar { from { opacity:0; translate:0 4px; } }
+.ohana-seta { display:inline-block; transition:rotate 150ms ease-out; }
+details[open] > summary .ohana-seta { rotate:180deg; }
+.ranking .placar [data-atualizado=true] { animation:ohana-pontos 250ms ease-out; }
+@keyframes ohana-pontos { from { background:#bce6db; } }
+.sorteio-disco[data-revelado=true] .sorteio-selo { animation:ohana-selo 220ms ease-out; }
+@keyframes ohana-selo { 50% { scale:1.09; } }
+.ohana-sino-novo { animation:ohana-sino 200ms ease-out; }
+@keyframes ohana-sino { 30% { rotate:-12deg; } 70% { rotate:9deg; } }
+.caixa-avisos > a { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:44px; text-decoration:none; }
+.marinho-foto[data-publicada=true] img { animation:ohana-foto 230ms ease-out; }
+@keyframes ohana-foto { from { opacity:.55; scale:1.045; } }
+@media (prefers-reduced-motion: reduce) {
+  .shell button, .shell .botao-ohana, .shell nav a, .ohana-seta { transition:none; }
+  .ohana-revela, .caixa-avisos, .toast-album, .ranking .placar [data-atualizado=true],
+  .sorteio-disco[data-revelado=true] .sorteio-selo, .ohana-sino-novo,
+  .marinho-foto[data-publicada=true] img { animation:none; }
+  .botao-ohana:active, .shell button:enabled:not(.marinho-foto):active, .shell nav a:active { transform:none; }
+}
+
+/* Três cristas sobem em sequência e saem pelo topo, revelando a nova aba. */
+.ondas-navegacao {
+  position:fixed; inset:0; z-index:5; overflow:hidden; pointer-events:none;
+  animation:ondas-fim 440ms linear;
+}
+.ondas-navegacao i {
+  position:absolute; inset:0 0 auto; height:calc(100% + 120px);
+  background:#a8dcd5; transform:translateY(100%);
+  animation:onda-navegar 400ms both;
+}
+.ondas-navegacao i:nth-child(2) { background:#368e91; animation-delay:20ms; }
+.ondas-navegacao i:nth-child(3) { background:#103e50; animation-delay:40ms; }
+.ondas-navegacao i::before {
+  content:""; position:absolute; inset:0 0 auto; height:46px;
+  background:inherit; border-top:2px solid #fff9; border-radius:55% 42% 0 0 / 90% 70% 0 0;
+}
+.ondas-navegacao i { clip-path:ellipse(125% 100% at 48% 100%); }
+.ondas-navegacao i:nth-child(2) { clip-path:ellipse(110% 100% at 68% 100%); }
+.ondas-navegacao i:nth-child(3) { clip-path:ellipse(130% 100% at 24% 100%); }
+@keyframes onda-navegar {
+  0% { transform:translateY(100%); animation-timing-function:cubic-bezier(.37,0,.24,1); }
+  33%, 46% { transform:translateY(-115px); animation-timing-function:cubic-bezier(.45,0,.45,1); }
+  100% { transform:translateY(-105%); }
+}
+@keyframes ondas-fim { from, to { opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .ondas-navegacao { visibility:hidden; } }

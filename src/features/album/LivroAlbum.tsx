@@ -34,8 +34,9 @@ function ajustarArte(arte: ReturnType<typeof arteDaCor>, lado: number) {
     bordas: `${100*bordaY}% ${100*bordaX}%` };
 }
 
-export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, corPessoal }: {
+export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, corPessoal, recemPublicada }: {
   corPessoal: string;
+  recemPublicada?: number;
   fotos: VagaFoto[];
   abrir: (foto: VagaFoto) => void;
   familia: boolean;
@@ -90,7 +91,7 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, cor
             {arte.quadros.map((m, i) => {
               if (m.pagina !== lado) return null;
               const foto = colecao.find(f => f.posicao === i + 1);
-              return <button key={i} className="marinho-foto"
+              return <button key={i} className="marinho-foto" data-publicada={recemPublicada === i+1 && n === pagina}
                 style={{left: (0.5 + (m.x/largura - 0.5)*ajuste.fracX) * 100 + "%", top: (0.5 + (m.y/arte.altura - 0.5)*ajuste.fracY) * 100 + "%",
                   width: (m.w + 8) / largura * ajuste.fracX * 100 + "%", height: (m.h + 8) / arte.altura * ajuste.fracY * 100 + "%",
                   transform: `translate(-50%, -50%) rotate(${m.angulo}deg)`}}

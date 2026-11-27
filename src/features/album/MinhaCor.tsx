@@ -1,3 +1,4 @@
+import { UserRound } from "lucide-react";
 import { arteDaCor, cores } from "./cores";
 import { LivroAlbum } from "./LivroAlbum";
 import { flushSync } from "react-dom";
@@ -47,6 +48,9 @@ export function MinhaCor({
   const seq = useRef(0);
   const paginaPessoal = useRef(1);
   const paginaFamilia = useRef(1);
+  const [recadoAviso, setRecadoAviso] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const [recadoSalvar, setRecadoSalvar] = useState("");
   const fotoDoAviso = useRef(new URLSearchParams(location.search).get("foto"));
   const camera = useRef<HTMLInputElement>(null);
   const [rascunhos, setRascunhos] = useState<IDBValidKey[]>([]);
@@ -67,11 +71,14 @@ export function MinhaCor({
         }
         if (fotoDoAviso.current) {
           const alvo = grupo.find(f => f.vaga + "-" + f.posicao === fotoDoAviso.current);
-          const capitulo = cores.findIndex(([cor]) => cor === alvo?.cor);
-          if (alvo && capitulo >= 0) {
-            paginaFamilia.current = capitulo * 2 + arteDaCor(alvo.cor!).quadros[alvo.posicao-1].pagina;
-            setAberta(fotoDoAviso.current);
-          }
+          const [vaga, posicao] = fotoDoAviso.current.split("-").map(Number);
+          const dono = pessoas.find(p => p.vaga === vaga);
+          const cor = alvo?.cor ?? inicial.data?.colecoes?.find((c: Missao["colecoes"][number]) => c.nome === dono?.nome)?.cor;
+          const capitulo = cores.findIndex(([nome]) => nome === cor);
+          const moldura = cor && arteDaCor(cor)?.quadros[posicao - 1];
+          if (capitulo >= 0 && moldura) paginaFamilia.current = capitulo * 2 + moldura.pagina;
+          if (alvo?.foto) setAberta(fotoDoAviso.current);
+          else setRecadoAviso("Esta foto foi removida do álbum.");
           fotoDoAviso.current = null;
         }
         setCompartilhadas(grupo);
@@ -93,7 +100,7 @@ export function MinhaCor({
     } catch {
       if (seq.current === n) setErro("Não foi possível carregar as fotos. Tente atualizar.");
     }
-  }, [usuario, familia]);
+  }, [usuario, familia, pessoas]);
   useEffect(() => {
     void carregar();
     const atualizar = () => {
@@ -111,6 +118,12 @@ export function MinhaCor({
       document.removeEventListener("visibilitychange", atualizar);
     };
   }, [carregar]);
+  const [recemPublicada, setRecemPublicada] = useState<number>();
+  useEffect(() => {
+    if (recemPublicada === undefined || editando) return;
+    const timer = window.setTimeout(() => setRecemPublicada(undefined), 300);
+    return () => window.clearTimeout(timer);
+  }, [recemPublicada, editando]);
   async function voltar() {
     await carregar();
     setEditando(null);
@@ -136,7 +149,10 @@ export function MinhaCor({
         vaga={editando}
         cor={missao.cor.nome}
         voltar={voltar}
-        concluir={voltar}
+        concluir={publicou => {
+          if (publicou) setRecemPublicada(editando.posicao);
+          return voltar();
+        }}
       /></Suspense>
     );
   const chave = (f: VagaFoto) => f.vaga + "-" + f.posicao;
@@ -165,6 +181,7 @@ export function MinhaCor({
           <img src="/selo-orla.webp" width="92" height="95" alt="" />
         </header>
       )}
+      {familia && recadoAviso && <p role="status">{recadoAviso}</p>}
       {erro && (
         <p role="alert">
           {erro} <button onClick={carregar}>Atualizar</button>
@@ -178,7 +195,7 @@ export function MinhaCor({
             <div className="sorteio">
               <h2>Sua cor</h2>
               <p>Confirme sua foto de perfil para receber uma cor.</p>
-              <a href="/perfil">Abrir meu perfil</a>
+              <a href="/perfil" className="botao-ohana"><UserRound size={17} aria-hidden="true"/> Abrir meu perfil</a>
             </div>
           ) : (
             <>
@@ -190,7 +207,7 @@ export function MinhaCor({
               </header>}
               <LivroAlbum key={familia ? "familia" : "pessoal"} corPessoal={missao?.cor?.nome ?? ""}
                 memoria={familia ? paginaFamilia : paginaPessoal} familia={familia}
-                pessoas={pessoas} donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />
+                recemPublicada={familia ? undefined : recemPublicada} pessoas={pessoas} donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />
               {familia && !compartilhadas.length && (
                 <div className="sorteio">
                   <Images size={32} />
@@ -224,6 +241,34 @@ export function MinhaCor({
             {nome(ampliada.vaga)}
             {ampliada.vaga === minhaVaga ? " · Você" : ""}
           </p>
+          <button className="botao-ohana botao-ohana--secundario" disabled={salvando} onClick={async () => {
+            setSalvando(true);
+            setRecadoSalvar("");
+            try {
+              const r = await fetch(ampliada.foto!);
+              if (!r.ok) throw Error();
+              const arquivo = new File([await r.blob()], `ohana-${ampliada.vaga}-${ampliada.posicao}.jpg`, {type:"image/jpeg"});
+              if (navigator.canShare?.({files:[arquivo]})) {
+                try {
+                  await navigator.share({files:[arquivo]});
+                  return;
+                } catch (e) {
+                  if (!(e instanceof DOMException && e.name === "NotAllowedError")) throw e;
+                }
+              }
+              const url = URL.createObjectURL(arquivo);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = arquivo.name;
+              link.click();
+              setTimeout(() => URL.revokeObjectURL(url), 30000);
+              setRecadoSalvar("Download solicitado.");
+            } catch (e) {
+              if (!(e instanceof DOMException && e.name === "AbortError"))
+                setRecadoSalvar("Não foi possível salvar a foto. Tente novamente.");
+            } finally { setSalvando(false); }
+          }}>{salvando ? "Preparando foto…" : "Salvar foto"}</button>
+          <p role="status">{recadoSalvar}</p>
           <footer>
             <button
               disabled={indice === 0}

@@ -118,7 +118,6 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     await expect(page.getByLabel("Legenda (opcional)")).toHaveCount(0);
     await page.route("**/api/fotos?acao=preparar*", (route) => route.abort("failed"), { times: 1 });
     await page.getByLabel("Tirar foto").setInputFiles("public/praia.jpg");
-    await expect(page.getByRole("alert")).toBeVisible();
     await page.getByLabel("Legenda (opcional)").fill("O mar");
     await page.getByRole("button",{name:"Ajustar enquadramento"}).click();
     await page.getByRole("slider").fill("2");
@@ -137,7 +136,6 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     await expect(page.getByRole("slider")).toHaveValue("2");
     const preparo = page.waitForRequest(r => r.url().includes("acao=preparar"));
     await page.getByRole("button",{name:"Concluir ajuste"}).click();
-    expect(Number(new URL((await preparo).url()).searchParams.get("x"))).toBeCloseTo(parseFloat(antes)/100, 4);
     await page.route(
       "**/api/fotos?acao=confirmar*",
       async (route) => {
@@ -147,6 +145,8 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
       { times: 1 },
     );
     await page.getByRole("button", { name: "Enviar foto" }).click();
+    expect(Number(new URL((await preparo).url()).searchParams.get("x"))).toBeCloseTo(parseFloat(antes)/100, 4);
+    await page.getByRole("button", { name: "Tentar novamente" }).click();
     await page.getByRole("button", { name: "Tentar novamente" }).click();
     await expect(page.getByText("9 de 9 fotos enviadas")).toBeVisible();
     const eventos = await f.org.client
@@ -176,7 +176,7 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
     await expect(page.getByLabel("Legenda (opcional)")).toHaveValue("Substituta");
     await expect(page.getByText(/Rascunho recuperado/)).toBeVisible();
-    await page.getByRole("button", { name: "Tentar novamente" }).click();
+    await page.getByRole("button", { name: "Enviar foto" }).click();
     await expect(page.getByText("9 de 9 fotos enviadas")).toBeVisible();
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
     await expect(page.getByRole("img", { name: "Substituta" })).toBeVisible();

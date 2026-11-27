@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "./client";
 import { FotoPerfil } from "./FotoPerfil";
-type Opcao = { vaga: number; nome: string; cadastrado: boolean };
+type Opcao = { vaga: number; nome: string; cadastrado: boolean; exigeConvite?: boolean };
 export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => void }) {
   const [lista, setLista] = useState<Opcao[]>([]),
     [vaga, setVaga] = useState(""),
@@ -54,6 +54,7 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
       ativa = false;
     };
   }, [acesso]);
+  const [conviteJuan, setConviteJuan] = useState("");
   async function entrar() {
     setBusy(true);
     setAviso("");
@@ -63,6 +64,7 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
       const r = await fetch("/api/perfil?vaga=" + vaga, {
         method: "POST",
         body: foto,
+        headers: pessoa?.exigeConvite ? { "x-convite": conviteJuan.trim().split("#convite=").pop() ?? "" } : {},
       });
       const data = await r.json();
       if (!r.ok) throw Error(data.message);
@@ -110,19 +112,22 @@ export function Entrada({ primeiroPerfil }: { primeiroPerfil: (id: string) => vo
             ))}
           </select>
         </label>
+        {pessoa?.exigeConvite && <label>Convite pessoal do organizador
+          <input type="password" value={conviteJuan} onChange={e => setConviteJuan(e.target.value)} />
+        </label>}
         {pessoa && !pessoa.cadastrado && (
-          <>
+          <div className="ohana-revela" key={pessoa.vaga}>
             <h3>Sua foto de perfil</h3>
             <p>
               Ela aparece no seu perfil e ao lado dos seus pontos no ranking.
             </p>
             <FotoPerfil arquivo={foto} escolher={setFoto} />
-          </>
+          </div>
         )}
         {pessoa && (
           <button
             className="acao-perfil"
-            disabled={busy || (!foto && !pessoa.cadastrado)}
+            disabled={busy || (pessoa.exigeConvite && !conviteJuan.trim()) || (!foto && !pessoa.cadastrado)}
             onClick={entrar}
           >
             {busy ? "Entrando…" : "Entrar na viagem"}

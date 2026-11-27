@@ -47,7 +47,7 @@ export function RoletaCor({ continuar }: { continuar:()=>void }) {
 
   return <main className="sorteio-entrada">
     <h1>Sua cor da viagem</h1>
-    <div className="sorteio-disco" aria-hidden="true">
+    <div className="sorteio-disco" data-revelado={Boolean(resultado)} aria-hidden="true">
       <div className="sorteio-canvas" ref={disco}/>
       <img className="sorteio-selo" src="/ohana-roleta.webp" width="240" height="240" alt=""/>
     </div>

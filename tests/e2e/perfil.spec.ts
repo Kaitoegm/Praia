@@ -61,6 +61,10 @@ test("selecionar nome com foto, trocar pelo perfil e preservar a vaga", async ({
     ).not.toHaveAttribute("src", anterior!);
     const outro = await browser.newPage();
     await outro.goto(base + "/entrar#convite=" + token);
+    await outro.getByLabel("Seu nome").selectOption("1");
+    await expect(outro.getByLabel("Convite pessoal do organizador")).toBeVisible();
+    const negado = await outro.request.post(base + "/api/perfil?vaga=1");
+    expect(negado.status()).toBe(403);
     await outro.getByLabel("Seu nome").selectOption("3");
     await outro.getByRole("button", { name: "Entrar na viagem" }).click();
     await outro.getByRole("link", { name: "Perfil", exact: true }).click();

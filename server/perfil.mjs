@@ -88,12 +88,15 @@ export async function perfil(req, res) {
       if (r.error) throw erro(503, "Tente novamente.");
       return reply(200, r.data.map(({ vaga, nome, usuario_id }) => ({
         vaga, nome, cadastrado: Boolean(usuario_id),
+        exigeConvite: vaga === 1 && !c.data.organizador,
       })));
     }
     if (req.method !== "POST" || !device) throw erro(403, "Reabra o convite.");
     const pos = Number(
       new URL(req.url, "http://localhost").searchParams.get("vaga"),
     );
+    if (pos === 1 && !c.data.organizador)
+      throw erro(403, "Use o convite pessoal do organizador.");
     const p = await db
       .from("participantes")
       .select("email,usuario_id")

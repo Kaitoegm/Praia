@@ -47,7 +47,7 @@ export function Rodada({
           <h3>
             {jogo} · {titulo}
           </h3>
-          <ol className="resumo-pontos">
+          <ol className="resumo-pontos ohana-revela">
             {jogadores.map((p) => (
               <li key={p.vaga}>
                 {p.nome}

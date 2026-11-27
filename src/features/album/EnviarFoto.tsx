@@ -20,7 +20,7 @@ export function EnviarFoto({
   vaga: VagaFoto;
   cor: string;
   voltar: () => void;
-  concluir: () => void;
+  concluir: (publicou: boolean) => void;
 }) {
   const m = arteDaCor(cor)?.quadros[vaga.posicao-1];
   const [visor, setVisor] = useState(!vaga.foto);
@@ -68,7 +68,7 @@ export function EnviarFoto({
         setPreview(salvo.preview);
       }
       if (salvo.corte && !salvo.preview) setAjustando(true);
-      setErro("Rascunho recuperado. Retome o envio quando tiver conexão.");
+      setAvisoLocal("Rascunho recuperado. A foto está salva neste aparelho.");
     }).catch(() => {
       if (ativo) setAvisoLocal("O rascunho só ficará disponível enquanto esta tela estiver aberta.");
     }).finally(() => { if (ativo) setLendo(false); });
@@ -92,26 +92,11 @@ export function EnviarFoto({
   function falhou(e: unknown) {
     setErro(
       e instanceof TypeError
-        ? "A conexão falhou. Sua seleção está aqui. Tente novamente."
+        ? "A conexão falhou. Seu rascunho continua nesta tela."
         : e instanceof Error
           ? e.message
           : "Não foi possível concluir.",
     );
-  }
-  async function preparar(file: File) {
-    setBusy(true);
-    setFase("Enviando e preparando a foto…");
-    setErro("");
-    try {
-      const r = await apiFotos<{ preview: string }>(query("preparar"), file);
-      setPreview(r.preview);
-      if (rascunho.current) await guardar({ ...rascunho.current, preview: r.preview, preparadoEm: Date.now() });
-    } catch (e) {
-      if (rascunho.current?.corte) setAjustando(true);
-      falhou(e);
-    } finally {
-      setBusy(false);
-    }
   }
   function alterarCorte(valor: Corte) {
     if (!rascunho.current) return;
@@ -129,6 +114,7 @@ export function EnviarFoto({
       return;
     }
     setAjustando(false);
+    setAvisoLocal("");
     setFalhaLocal(false);
     setCorte(central);
     setVisor(false);
@@ -137,7 +123,7 @@ export function EnviarFoto({
     setArquivo(file);
     setPreview("");
     setLocal("");
-    void preparar(file);
+
   }
   async function confirmar(remover: boolean) {
     if (
@@ -149,6 +135,13 @@ export function EnviarFoto({
     setErro("");
     setFase(remover ? "Removendo foto…" : "Confirmando publicação…");
     try {
+      if (!remover && arquivo && !preview) {
+        setFase("Preparando a foto…");
+        const r = await apiFotos<{preview:string}>(query("preparar"), arquivo);
+        setPreview(r.preview);
+        if (rascunho.current) await guardar({...rascunho.current, preview:r.preview, preparadoEm:Date.now()});
+        setFase("Confirmando publicação…");
+      }
       await apiFotos(
         remover
           ? "?acao=remover&posicao=" + vaga.posicao + "&versao=" + vaga.versao
@@ -156,7 +149,7 @@ export function EnviarFoto({
         JSON.stringify({ legenda }),
       );
       await guardar();
-      await concluir();
+      await concluir(!remover);
     } catch (e) {
       falhou(e);
     } finally {
@@ -172,9 +165,11 @@ export function EnviarFoto({
         ? <VisorMoldura proporcao={m.w/m.h} escolher={escolher} fechar={fecharVisor}/>
         : <button onClick={() => setVisor(true)}>Abrir visor da moldura</button>)}
       {ajustando && arquivo && local && m && <AjustarFoto arquivo={arquivo} url={local} proporcao={m.w/m.h} corte={corte}
-        alterar={alterarCorte} fechar={() => { setAjustando(false); if (!preview) void preparar(arquivo); }} />}
+        alterar={alterarCorte} fechar={() => setAjustando(false)} />}
       {!ajustando && imagem && (
         <img
+          className="ohana-revela"
+          key={imagem}
           src={imagem}
           style={m && arquivo ? {width:`min(100%, ${30 * m.w / m.h}dvh)`,height:"auto",aspectRatio:m.w/m.h,objectFit:"cover"} : undefined}
           alt={
@@ -234,13 +229,8 @@ export function EnviarFoto({
       {busy && <p role="status">{fase}</p>}
       {avisoLocal && <p role="status">{avisoLocal}</p>}
       {erro && <p role="alert">{erro}</p>}
-      {arquivo && !ajustando && !preview && erro && (
-        <button disabled={busy} onClick={() => preparar(arquivo)}>
-          Tentar novamente
-        </button>
-      )}
-      {preview && !ajustando && (
-        <button disabled={busy} onClick={() => confirmar(false)}>
+      {arquivo && !ajustando && (
+        <button className="botao-ohana" disabled={busy} onClick={() => confirmar(false)}>
           {erro ? "Tentar novamente" : "Enviar foto"}
         </button>
       )}

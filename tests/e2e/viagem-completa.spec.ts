@@ -37,6 +37,10 @@ test('dois viajantes acompanham a mesma foto e o aviso da viagem',async({browser
     await publicada.click()
     const imagem=familiar.getByRole('dialog').getByRole('img')
     await expect.poll(()=>imagem.evaluate((e:HTMLImageElement)=>e.naturalWidth)).toBeGreaterThan(0)
+    await familiar.evaluate(() => Object.defineProperty(navigator, "canShare", {value: () => false}));
+    const download = familiar.waitForEvent("download");
+    await familiar.getByRole("button",{name:"Salvar foto"}).click();
+    expect((await download).suggestedFilename()).toBe("ohana-1-1.jpg");
     await familiar.getByRole('button',{name:'Fechar foto'}).click()
     await familiar.getByRole('button',{name:'Notificações',exact:true}).click()
     await expect(familiar.locator('.caixa-avisos>a')).toHaveCount(1)

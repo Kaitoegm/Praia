@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, X } from "lucide-react";
+import { Bell, ChevronRight, X } from "lucide-react";
 import { db } from "../acesso/client";
 import { apiFotos } from "./fotos";
 
@@ -72,6 +72,19 @@ export function Avisos({ id }: { id: string }) {
       localStorage.setItem(chave, String(publicados[0].id));
     }
   }
+  useEffect(() => {
+    if (!aberto || !("Notification" in window) || !("serviceWorker" in navigator)) return;
+    if (Notification.permission === "denied") {
+      setNota("Avisos bloqueados neste aparelho.");
+      return;
+    }
+    let ativo = true;
+    navigator.serviceWorker.getRegistration()
+      .then(reg => reg?.pushManager.getSubscription())
+      .then(sub => { if (ativo) setNota(sub && localStorage.getItem("ohana-push-perfil") === id ? "Avisos ativos neste aparelho." : "Avisos desativados neste aparelho."); })
+      .catch(() => {});
+    return () => { ativo = false; };
+  }, [aberto, id]);
   async function ativar() {
     setAtivando(true);
     try {
@@ -105,6 +118,7 @@ export function Avisos({ id }: { id: string }) {
           applicationServerKey: key,
         }));
       await apiFotos("?acao=push", JSON.stringify(sub));
+      localStorage.setItem("ohana-push-perfil", id);
       setNota("Notificações ativadas neste aparelho.");
     } catch {
       setNota(
@@ -122,7 +136,7 @@ export function Avisos({ id }: { id: string }) {
         aria-expanded={aberto}
         onClick={abrir}
       >
-        <Bell size={19} />
+        <Bell key={toast || "sino"} className={toast ? "ohana-sino-novo" : undefined} size={19} aria-hidden="true"/>
         {publicados.some((a) => a.id > lido) && <i />}
       </button>
       {aberto && (
@@ -143,7 +157,7 @@ export function Avisos({ id }: { id: string }) {
           ) : (
             publicados.map((a) => (
               <a key={a.id} href={linkFoto(a)}>
-                {a.autor} adicionou uma foto.
+                <span>{a.autor} adicionou uma foto.</span><ChevronRight size={16} aria-hidden="true"/>
               </a>
             ))
           )}
