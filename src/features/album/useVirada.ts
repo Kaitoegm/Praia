@@ -1,3 +1,4 @@
+import { virarComTurn } from "./virarComTurn";
 import { flushSync } from "react-dom";
 import { useEffect, useRef, useState, type RefObject, type PointerEvent } from "react";
 
@@ -10,6 +11,7 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
   const sombra = useRef<HTMLSpanElement>(null);
   const quadro = useRef(0);
   const pendente = useRef(0);
+  const limparTurn = useRef<(() => void) | undefined>(undefined);
   const destino = useRef(false);
   const animacoes = useRef<Animation[]>([]);
   const movimentoReduzido = useRef(false);
@@ -50,6 +52,8 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     }
   }
   function pararAnimacoes() {
+    limparTurn.current?.();
+    limparTurn.current = undefined;
     for (const a of animacoes.current) a.cancel();
     animacoes.current = [];
   }
@@ -74,6 +78,18 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
       progresso.current = 0;
     }
     if (movimentoReduzido.current || de === para) { terminar(); return; }
+    if (avancar && livro.current) {
+      const vizinha = livro.current.querySelector<HTMLDivElement>(
+        `[data-vizinha="${direcaoFisica.current}"]`,
+      );
+      if (vizinha) {
+        limparTurn.current = virarComTurn(livro.current, papel, vizinha, direcaoFisica.current > 0, () => {
+          limparTurn.current = undefined;
+          terminar();
+        });
+        if (limparTurn.current) return;
+      }
+    }
     const opcoes = {duration: Math.max(90, 240 * Math.abs(para - de)), easing:"cubic-bezier(.2,.65,.3,1)", fill:"forwards" as const};
     const giro = papel.animate([{transform:rotacao(de)}, {transform:rotacao(para)}], opcoes);
     const luz = tinta.animate([{opacity:de*.42}, {opacity:para*.42}], opcoes);
@@ -103,6 +119,7 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     };
   }, []);
   function iniciar(e: PointerEvent<HTMLDivElement>) {
+    if (limparTurn.current) { bloquearClique.current = true; return; }
     if (!e.isPrimary || e.button !== 0) return;
     cancelAnimationFrame(quadro.current);
     quadro.current = 0;
@@ -159,7 +176,7 @@ export function useVirada(memoria: RefObject<number>, total: number, sentidoAvan
     const rapido = e.timeStamp-g.instante < 80 && g.velocidade > .55;
     assentar(p >= .35 || (p >= .12 && rapido));
   }
-  return { livro, folha, sombra, pagina, irPara, virar: (sentido: number) => { atualizarPreferencia(); if (!gesto.current && !animacoes.current.length && prepararDirecao(sentido)) assentar(true); }, eventos: {
+  return { livro, folha, sombra, pagina, irPara, virar: (sentido: number) => { atualizarPreferencia(); if (!limparTurn.current && !gesto.current && !animacoes.current.length && prepararDirecao(sentido)) assentar(true); }, eventos: {
     onPointerDown: iniciar, onPointerMove: mover, onPointerUp: soltar,
     onPointerCancel: cancelar, onLostPointerCapture: (e: PointerEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget && gesto.current?.arrastando) cancelar();

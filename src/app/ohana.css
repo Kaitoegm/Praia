@@ -337,3 +337,15 @@ details[open] > summary .ohana-seta { rotate:180deg; }
 }
 @keyframes ondas-fim { from, to { opacity:1; } }
 @media (prefers-reduced-motion:reduce) { .ondas-navegacao { visibility:hidden; } }
+
+.marinho-livro > .virada-turn { position:absolute; inset:0; z-index:3; pointer-events:none; background:#f3eae0; }
+.virada-turn[data-espelhado=true], .virada-turn[data-espelhado=true] .marinho-folha { scale:-1 1; }
+.palco-album { padding:6px 10px 12px 12px; }
+.palco-album .marinho-livro {
+  box-shadow:-5px 0 #294951, 2px 2px #f6ecda, 3px 4px #bcad95,
+    4px 5px #f6ecda, 5px 7px #35555b, 1px 8px 12px #352d2233;
+}
+.marinho-livro::after {
+  width:9px; z-index:4;
+  background:linear-gradient(90deg,#33221355,transparent);
+}

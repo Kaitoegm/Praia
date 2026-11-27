@@ -35,6 +35,7 @@ test("as nove molduras do marinho conservam a página e o formato", async ({ pag
     await arrastar(.08);
     await expect(page.getByText("Página 1 de 2")).toBeVisible();
     await arrastar(.50);
+    await expect(livro.locator(".virada-turn .turn-page-wrapper")).toHaveCount(2);
     await expect(page.getByText("Página 2 de 2")).toBeVisible();
     if (browserName === "chromium") {
       const cdp = await page.context().newCDPSession(page);
