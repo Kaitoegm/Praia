@@ -240,7 +240,6 @@ nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); backgro
   .album-abas { margin: 0 auto; padding: 2px; }
   .shell.caderno .missao .colecao-titulo { margin: 0; }
   .indice-album { margin: 0; }
-  .livro-album .marinho-livro { flex: 1; min-height: 145px; aspect-ratio: auto; }
   .marinho-controles { padding: 0; font-variant-numeric: tabular-nums; }
   .caderno-pagina:has(.livro-album) > .sorteio { padding: 0; margin: 0; background: transparent; border: 0; }
   .caderno-pagina:has(.livro-album) > .sorteio svg { display: none; }
@@ -269,6 +268,7 @@ nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); backgro
 .total-capitulo { color:#526465; font-variant-numeric:tabular-nums; }
 .palco-album { display:grid; place-items:center; padding:5px 6px 7px 7px; }
 .palco-album .marinho-livro {
+  width:100%; aspect-ratio:4/5;
   min-height:0; border-radius:2px 5px 5px 2px;
   box-shadow:-3px 0 #294951, 1px 1px 0 1px #e9dfce, 2px 2px #a69b86,
     3px 3px #fff4e2, 3px 4px 0 2px #35555b, 0 4px 8px #352d222b;
@@ -280,5 +280,5 @@ nav [aria-current], .caderno nav [aria-current] { color: var(--marinho); backgro
 @media (max-width:580px) {
   .shell.caderno main:has(.livro-album) { padding-inline:clamp(6px,1.8vw,10px); }
   .livro-album .palco-album { flex:1; min-height:155px; container-type:size; }
-  .livro-album .palco-album .marinho-livro { flex:none; min-height:0; }
+  .livro-album .palco-album .marinho-livro { width:min(100%, 80cqh); flex:none; min-height:0; }
 }

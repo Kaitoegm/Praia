@@ -38,7 +38,7 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 .caderno .envio>img{width:100%;object-fit:contain;background:#fff8;border-radius:15px}
 .caderno nav{background:#fbf8f2f7}.caderno nav [aria-current]{background:color-mix(in srgb,var(--tinta) 15%,#faf7f0);color:#322e2a}
 .ampliada{width:min(90vw,480px);border:0;border-radius:16px;background:#faf6ef;color:#332e28;padding:18px}
-.ampliada::backdrop{background:#211f20be}.ampliada>img{display:block;width:100%;max-height:56vh;object-fit:contain;margin:10px 0}
+.ampliada::backdrop{background:#211f20be}.ampliada>img{display:block;width:100%;height: min(56dvh, 520px);object-fit:contain;margin:10px 0}
 .ampliada footer,.ampliada footer button{display:flex;align-items:center;justify-content:space-between}
 .avisos{position:relative;margin-left:auto}.avisos button{min-height:44px;cursor:pointer}
 .sino,.caixa-avisos header button{border:0;background:none;color:inherit;width:44px;position:relative}

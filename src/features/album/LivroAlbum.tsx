@@ -28,8 +28,6 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, cor
   const responsavel = pessoas.find(p => p.nome === dono?.nome)
     ?? pessoas.find(p => p.vaga === fotos.find(f => f.cor === corAtual)?.vaga);
   const nome = responsavel?.nome ?? dono?.nome;
-  const arteAtual = arteDaCor(corAtual);
-  const proporcao = arteAtual.larguras[(pagina-1)%2] / arteAtual.altura;
   return <section className="livro-album" aria-label={familia ? "Livro da família" : `Álbum ${corPessoal}`}>
     {familia && <div className="ficha-capitulo">
       {responsavel?.avatar
@@ -49,7 +47,7 @@ export function LivroAlbum({ fotos, abrir, familia, memoria, donos, pessoas, cor
       </select>
     </div>}
     <div className="palco-album">
-    <div className="marinho-livro" ref={livro} style={{aspectRatio:proporcao, width:`min(100%, ${100*proporcao}cqh)`}} {...eventos}>
+    <div className="marinho-livro" ref={livro} {...eventos}>
       {[pagina-1,pagina,pagina+1].filter(n=>n>=1 && n<=total).map(n => {
         const lado = n % 2 === 1 ? 1 : 2;
         const cor = familia ? cores[Math.floor((n-1)/2)][0] : corPessoal;
