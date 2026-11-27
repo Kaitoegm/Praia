@@ -1,9 +1,10 @@
-import { randomBytes, createHash } from "node:crypto";
+import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import { recuperarAparelho } from "./recuperar-aparelho.mjs";
 import sharp from "sharp";
 import { banco, dados } from "./fotos.mjs";
 import { processar, limite } from "./imagens.mjs";
 const hash = (v) => createHash("sha256").update(v).digest("hex");
+const tentativasJuan = new Map();
 const erro = (status, message) => Object.assign(Error(message), { status });
 async function retrato(req) {
   const bytes = await dados(req, limite);
@@ -66,6 +67,8 @@ export async function perfil(req, res) {
       });
       throw erro(503, "O cadastro está temporariamente indisponível.");
     }
+    const senhaJuan = process.env.OHANA_SENHA_JUAN;
+    const exigeSenha = Boolean(senhaJuan) || process.env.NODE_ENV === "production";
     const device = cookies.praia_aparelho;
     if (new URL(req.url, "http://localhost").searchParams.has("recuperar"))
       return await recuperarAparelho(req, res, db, c.data.viagem_id, device);
@@ -88,15 +91,34 @@ export async function perfil(req, res) {
       if (r.error) throw erro(503, "Tente novamente.");
       return reply(200, r.data.map(({ vaga, nome, usuario_id }) => ({
         vaga, nome, cadastrado: Boolean(usuario_id),
-        exigeConvite: vaga === 1 && !c.data.organizador,
+        exigeSenha: vaga === 1 && (exigeSenha || !c.data.organizador),
       })));
     }
     if (req.method !== "POST" || !device) throw erro(403, "Reabra o convite.");
     const pos = Number(
       new URL(req.url, "http://localhost").searchParams.get("vaga"),
     );
-    if (pos === 1 && !c.data.organizador)
-      throw erro(403, "Use o convite pessoal do organizador.");
+    if (pos === 1 && exigeSenha) {
+      if (!senhaJuan) throw erro(503, "A entrada do organizador está indisponível.");
+      const agora = Date.now();
+      for (const [ip, tentativa] of tentativasJuan)
+        if (tentativa.expira <= agora) tentativasJuan.delete(ip);
+      const ip = req.headers["x-real-ip"] ?? req.socket.remoteAddress;
+      const tentativa = tentativasJuan.get(ip) ?? { total: 0, expira: agora + 60_000 };
+      if (tentativa.total >= 5) throw erro(429, "Aguarde um minuto e tente novamente.");
+      const informada = req.headers["x-ohana-senha"];
+      if (typeof informada !== "string" || !timingSafeEqual(
+        createHash("sha256").update(informada).digest(),
+        createHash("sha256").update(senhaJuan).digest(),
+      )) {
+        tentativa.total++;
+        tentativasJuan.set(ip, tentativa);
+        throw erro(403, "Senha incorreta.");
+      }
+      tentativasJuan.delete(ip);
+    } else if (pos === 1 && !c.data.organizador) {
+      throw erro(403, "A entrada do organizador está indisponível.");
+    }
     const p = await db
       .from("participantes")
       .select("email,usuario_id")
