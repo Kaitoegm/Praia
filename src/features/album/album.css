@@ -75,3 +75,7 @@ body:has(.caderno){background:linear-gradient(90deg,#f1ece3e8,#f4eee5d4),url('/p
 
 .marinho-folha { container-type:size; display:grid; place-items:center; background:#faf3e9; }
 .arte-pagina { position:relative; background:#f3eae0; }
+
+.editor-corte { display:grid; gap:8px; }
+.janela-corte { position:relative; justify-self:center; overflow:hidden; touch-action:none; user-select:none; background:#efe8dc; }
+.janela-corte img { position:absolute; max-width:none; max-height:none; pointer-events:none; }

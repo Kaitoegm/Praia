@@ -166,6 +166,15 @@ export async function fotos(req, res) {
     }
     if (req.method !== "POST") throw falha(405, "Método inválido.");
     const acao = url.searchParams.get("acao");
+    if (acao === "visualizar") {
+      const membro = await db.from("participantes").select("vaga").eq("usuario_id", autor_id).single();
+      if (membro.error) throw falha(403, "Acesso indisponível.");
+      const bytes = await dados(req, limite);
+      try {
+        const { imagem } = await processar(bytes);
+        return enviar(200, { imagem: "data:image/jpeg;base64," + imagem.toString("base64") });
+      } catch { throw falha(422, "Não foi possível abrir a imagem."); }
+    }
     const pos = Number(url.searchParams.get("posicao")),
       esperada = Number(url.searchParams.get("versao"));
     const tentativa = url.searchParams.get("tentativa");
@@ -204,7 +213,11 @@ export async function fotos(req, res) {
         const moldura = artes[atribuicao.data?.cores?.nome]?.quadros[pos-1];
         let img;
         try {
-          img = await processar(bytes, moldura);
+          const valor = (nome, padrao) => Number(url.searchParams.get(nome) ?? padrao);
+          const corte = {x:valor("x", .5), y:valor("y", .5), zoom:valor("zoom", 1)};
+          if (![corte.x, corte.y].every(n => n >= 0 && n <= 1) || !(corte.zoom >= 1 && corte.zoom <= 4))
+            throw Error("Enquadramento inválido.");
+          img = await processar(bytes, moldura, corte);
         } catch {
           throw falha(
             422,

@@ -24,6 +24,9 @@ test('dois viajantes acompanham a mesma foto e o aviso da viagem',async({browser
     const opcao = indice.locator("option").filter({hasText:" · Ana"});
     await expect(opcao).toHaveCount(1);
     await indice.selectOption(await opcao.getAttribute("value") as string);
+    await expect(familiar.locator(".identidade-capitulo")).toContainText("Ana");
+    await expect(familiar.getByRole("img", {name:"Foto de Ana"})).toBeVisible();
+    await familiar.screenshot({path:test.info().outputPath("livro-da-familia.png")});
     await org.getByRole('button',{name:'Abrir foto 1 de 9',exact:true}).click()
     await org.getByLabel('Escolher da galeria').setInputFiles('public/praia.jpg')
     await org.getByLabel('Legenda (opcional)').fill('Primeiro dia de praia')

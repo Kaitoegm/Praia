@@ -13,7 +13,8 @@ import {
 import "./album.css";
 import { db, type Pessoa } from "../acesso/client";
 import { apiFotos, type VagaFoto } from "./fotos";
-import { EnviarFoto } from "./EnviarFoto";
+import { lazy, Suspense } from "react";
+const EnviarFoto = lazy(() => import("./EnviarFoto").then(m => ({default:m.EnviarFoto})));
 
 type Missao = {
   cor: null | { nome: string; amostra: string; sugestao: string };
@@ -129,14 +130,14 @@ export function MinhaCor({
   }, [aberta]);
   if (editando && missao?.cor)
     return (
-      <EnviarFoto
+      <Suspense fallback={<p>Preparando câmera…</p>}><EnviarFoto
         camera={camera}
         chaveRascunho={usuario + ":" + editando.posicao}
         vaga={editando}
         cor={missao.cor.nome}
         voltar={voltar}
         concluir={voltar}
-      />
+      /></Suspense>
     );
   const chave = (f: VagaFoto) => f.vaga + "-" + f.posicao;
   const nome = (v: number) =>
@@ -150,17 +151,6 @@ export function MinhaCor({
   }
   return (
     <section className="missao caderno-pagina">
-      {!familia && missao?.cor ? (
-        <header className="postal-cor">
-          <h1><span>Sua cor é</span> {missao.cor.nome}</h1>
-          <img src="/selo-orla.webp" width="92" height="95" alt="" />
-        </header>
-      ) : (
-        <header className="capa">
-          <small>Nosso álbum</small>
-          <h1>9 Momentos de Cores</h1>
-        </header>
-      )}
       <div className="album-abas">
         <button aria-pressed={!familia} onClick={() => setFamilia(false)}>
           <Camera size={16} /> Minha cor
@@ -169,6 +159,12 @@ export function MinhaCor({
           <Images size={16} /> Da família
         </button>
       </div>
+      {!familia && missao?.cor && (
+        <header className="postal-cor">
+          <h1><span>Sua cor é</span> {missao.cor.nome}</h1>
+          <img src="/selo-orla.webp" width="92" height="95" alt="" />
+        </header>
+      )}
       {erro && (
         <p role="alert">
           {erro} <button onClick={carregar}>Atualizar</button>
@@ -186,20 +182,15 @@ export function MinhaCor({
             </div>
           ) : (
             <>
-              <header className="colecao-titulo">
-                <h3>
-                  {familia ? "Fotos da família" : "Minha coleção"}
-                </h3>
+              {!familia && <header className="colecao-titulo">
+                <h3>Minha coleção</h3>
                 <small>
-                  {familia
-                    ? compartilhadas.length + ` de ${pessoas.length * 9} fotos`
-                    : fotos.filter((v) => v.foto).length +
-                      " de 9 fotos enviadas"}
+                  {fotos.filter(v => v.foto).length} de 9 fotos enviadas
                 </small>
-              </header>
+              </header>}
               <LivroAlbum key={familia ? "familia" : "pessoal"} corPessoal={missao?.cor?.nome ?? ""}
                 memoria={familia ? paginaFamilia : paginaPessoal} familia={familia}
-                donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />
+                pessoas={pessoas} donos={missao?.colecoes} fotos={familia ? compartilhadas : fotos} abrir={abrir} />
               {familia && !compartilhadas.length && (
                 <div className="sorteio">
                   <Images size={32} />

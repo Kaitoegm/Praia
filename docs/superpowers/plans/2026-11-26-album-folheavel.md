@@ -75,3 +75,19 @@ Manter o leitor leve ao crescer de zero para 117 fotos. Montar a folha atual e a
 - Usar design-mobile-apps e Uizze para compor e revisar quatro telas móveis: página pessoal de quatro fotos, segunda folha da família, visor 1:1 e revisão com teclado aberto. Aproveitar a marca, a tipografia e as margens do OHANA. [Uizze Mobile](https://uizze.com/?platform=Mobile)
 - A busca pela find-skills identificou **Gestures**, de Emil Kowalski, para manipulação direta e continuação do movimento ao soltar o dedo. Usá-la no protótipo da etapa 1. [Skill Gestures](https://skills.sh/emilkowalski/skills/gestures)
 - Para consultar a direção de arte conceitual, **Canvas Design**, da Anthropic, oferece direção de composição, espaço negativo e hierarquia. ImageGen produziu a prancha que deu origem aos fundos entregues. Preservar papel marfim, aquarela leve e a relação entre os motivos de cada par. [Skill Canvas Design](https://skills.sh/anthropics/skills/canvas-design)
+
+### Execução das etapas 6 e 7 · 27 de novembro de 2026
+
+Na revisão, **Ajustar enquadramento** abre a foto original dentro da proporção da vaga. O arrasto altera a posição e o controle de zoom vai de 1× a 4×. O rascunho guarda o arquivo original, a posição, o zoom e a legenda. O servidor aplica o corte à imagem orientada e gera a miniatura a partir dessa mesma imagem. A câmera e a revisão carregam ao abrir uma vaga. O leitor antecipa a decodificação das imagens das folhas vizinhas.
+
+**Ensaio de fluidez.** Compilação de produção, Supabase local, Microsoft Edge 158 no Windows, tela móvel emulada de 390 × 844 e densidade 2. O álbum de ensaio continha 117 miniaturas JPEG de 360 × 240, geradas de uma fotografia com variações de cor. Cada execução avançou da página 1 até a 11 com dez gestos de toque, incluindo uma inversão parcial no quinto gesto. Os intervalos medidos por requestAnimationFrame estimam o ritmo da página no navegador. A medição física de apresentação da tela exige um aparelho real.
+
+| Condição | Abertura até a folha pronta | Intervalos até 16,7 ms | Percentil 95 | Maior intervalo |
+| --- | ---: | ---: | ---: | ---: |
+| Antes de antecipar a decodificação, rede local | 677 ms | 153/197 | 16,9 ms | 33,4 ms |
+| Com decodificação das vizinhas, rede local | 794 ms | 153/201 | 16,9 ms | 49,8 ms |
+| Com 250 ms de atraso adicional por miniatura | 653 ms | 121/173 | 17,2 ms | 17,6 ms |
+
+Nos três ensaios, a abertura pediu nove miniaturas. As dez viradas pediram 54 ao todo e nenhuma foto ampliada. O observador de tarefas longas registrou zero tarefas de 50 ms ou mais durante os gestos. Na rodada local final, os maiores intervalos surgiram nas transições para as páginas 3 e 7. A amostra não permite atribuir a variação à decodificação ou à rede. A meta estrita de 95% dos intervalos até 16,7 ms continua aberta.
+
+Para repetir, use uma prévia local da compilação de produção apontada ao Supabase dos testes. Defina OHANA_BENCH_ORIGIN com a origem dessa prévia e execute o teste fluidez-album.spec.ts no Chromium. OHANA_BENCH_LATENCIA controla o atraso adicional de cada resposta de miniatura em milissegundos.

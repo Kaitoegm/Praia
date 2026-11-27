@@ -1,3 +1,5 @@
+import { AjustarFoto } from "./AjustarFoto";
+import { central, type Corte } from "./corte";
 import { arteDaCor } from "./cores";
 import { VisorMoldura } from "./VisorMoldura";
 import { useCallback, useRef, useState, useEffect, type RefObject } from "react";
@@ -29,6 +31,10 @@ export function EnviarFoto({
   const [legenda, setLegenda] = useState(vaga.legenda ?? ""),
     [erro, setErro] = useState(""),
     [busy, setBusy] = useState(false);
+  const [falhaLocal, setFalhaLocal] = useState(false);
+  const [ajustando, setAjustando] = useState(false);
+  const [corte, setCorte] = useState<Corte>(central);
+  const alterou = useRef(false);
   const tentativa = useRef("");
   const rascunho = useRef<Rascunho | undefined>(undefined);
   const [lendo, setLendo] = useState(true);
@@ -56,10 +62,12 @@ export function EnviarFoto({
       rascunho.current = salvo;
       tentativa.current = salvo.tentativa;
       setArquivo(salvo.arquivo);
+      setCorte(salvo.corte ?? central);
       setLegenda(salvo.legenda);
       if (salvo.preview && salvo.preparadoEm && Date.now() - salvo.preparadoEm < 14 * 60 * 1000) {
         setPreview(salvo.preview);
       }
+      if (salvo.corte && !salvo.preview) setAjustando(true);
       setErro("Rascunho recuperado. Retome o envio quando tiver conexão.");
     }).catch(() => {
       if (ativo) setAvisoLocal("O rascunho só ficará disponível enquanto esta tela estiver aberta.");
@@ -76,6 +84,7 @@ export function EnviarFoto({
     "?" +
     new URLSearchParams({
       acao,
+      ...(acao === "preparar" ? Object.fromEntries(Object.entries(rascunho.current?.corte ?? central).map(([k,v])=>[k,String(v)])) : {}),
       posicao: String(vaga.posicao),
       versao: String(vaga.versao),
       tentativa: tentativa.current,
@@ -98,10 +107,19 @@ export function EnviarFoto({
       setPreview(r.preview);
       if (rascunho.current) await guardar({ ...rascunho.current, preview: r.preview, preparadoEm: Date.now() });
     } catch (e) {
+      if (rascunho.current?.corte) setAjustando(true);
       falhou(e);
     } finally {
       setBusy(false);
     }
+  }
+  function alterarCorte(valor: Corte) {
+    if (!rascunho.current) return;
+    if (!alterou.current) { tentativa.current = crypto.randomUUID(); alterou.current = true; }
+    setCorte(valor);
+    setPreview("");
+    setErro("");
+    void guardar({...rascunho.current, corte:valor, tentativa:tentativa.current, preview:undefined, preparadoEm:undefined});
   }
   function escolher(file?: File) {
     if (!file) return;
@@ -110,6 +128,9 @@ export function EnviarFoto({
       setErro("Selecione uma foto de até 15 MB.");
       return;
     }
+    setAjustando(false);
+    setFalhaLocal(false);
+    setCorte(central);
     setVisor(false);
     tentativa.current = crypto.randomUUID();
     void guardar({ arquivo: file, legenda, versao: vaga.versao, tentativa: tentativa.current, criado: Date.now() }, true);
@@ -142,7 +163,7 @@ export function EnviarFoto({
       setBusy(false);
     }
   }
-  const imagem = arquivo ? preview || local : vaga.foto;
+  const imagem = arquivo ? preview || (!falhaLocal && local) : vaga.foto;
   return (
     <section className="envio">
       <h2>Foto {vaga.posicao} de 9</h2>
@@ -150,20 +171,26 @@ export function EnviarFoto({
       {m && !lendo && !arquivo && (visor
         ? <VisorMoldura proporcao={m.w/m.h} escolher={escolher} fechar={fecharVisor}/>
         : <button onClick={() => setVisor(true)}>Abrir visor da moldura</button>)}
-      {imagem && (
+      {ajustando && arquivo && local && m && <AjustarFoto arquivo={arquivo} url={local} proporcao={m.w/m.h} corte={corte}
+        alterar={alterarCorte} fechar={() => { setAjustando(false); if (!preview) void preparar(arquivo); }} />}
+      {!ajustando && imagem && (
         <img
           src={imagem}
-          style={m ? {width:`min(100%, ${30 * m.w / m.h}dvh)`,height:"auto",aspectRatio:m.w/m.h,objectFit:"cover"} : undefined}
+          style={m && arquivo ? {width:`min(100%, ${30 * m.w / m.h}dvh)`,height:"auto",aspectRatio:m.w/m.h,objectFit:"cover"} : undefined}
           alt={
             arquivo
               ? "Prévia da foto selecionada"
               : vaga.legenda || "Foto da sua coleção"
           }
           onError={() => {
-            if (!preview) setLocal("");
+            if (!preview) setFalhaLocal(true);
           }}
         />
       )}
+      {arquivo && local && m && !ajustando && <button disabled={busy} onClick={() => {
+        alterou.current = false;
+        setAjustando(true);
+      }}>Ajustar enquadramento</button>}
       {arquivo && <label className="legenda-postal">
         Legenda (opcional)
         <textarea
@@ -177,7 +204,7 @@ export function EnviarFoto({
           }}
         />
       </label>}
-      <fieldset disabled={busy}>
+      <fieldset disabled={busy || ajustando}>
         <legend>{vaga.foto ? "Escolher outra foto" : "Escolher foto"}</legend>
         <label>
           Tirar foto
@@ -207,12 +234,12 @@ export function EnviarFoto({
       {busy && <p role="status">{fase}</p>}
       {avisoLocal && <p role="status">{avisoLocal}</p>}
       {erro && <p role="alert">{erro}</p>}
-      {arquivo && !preview && erro && (
+      {arquivo && !ajustando && !preview && erro && (
         <button disabled={busy} onClick={() => preparar(arquivo)}>
           Tentar novamente
         </button>
       )}
-      {preview && (
+      {preview && !ajustando && (
         <button disabled={busy} onClick={() => confirmar(false)}>
           {erro ? "Tentar novamente" : "Enviar foto"}
         </button>
@@ -221,6 +248,7 @@ export function EnviarFoto({
         <button disabled={busy} onClick={async () => {
           if (!window.confirm("Descartar esta seleção e a legenda do rascunho?")) return;
           await guardar();
+          setAjustando(false);
           setArquivo(null);
           setLocal("");
           setPreview("");

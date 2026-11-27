@@ -120,11 +120,24 @@ test("nona foto, confirmação perdida, privacidade e troca interrompida", async
     await page.getByLabel("Tirar foto").setInputFiles("public/praia.jpg");
     await expect(page.getByRole("alert")).toBeVisible();
     await page.getByLabel("Legenda (opcional)").fill("O mar");
+    await page.getByRole("button",{name:"Ajustar enquadramento"}).click();
+    await page.getByRole("slider").fill("2");
+    const janela = page.getByRole("group",{name:/Posição da foto/});
+    const caixa = (await janela.boundingBox())!;
+    await page.mouse.move(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(caixa.x + caixa.width * .6, caixa.y + caixa.height * .6, {steps:4});
+    await page.mouse.up();
+    const antes = await janela.locator("img").evaluate(el => (el as HTMLElement).style.left);
+    expect(parseFloat(antes)).toBeLessThan(50);
     await page.reload();
     await page.getByRole("button",{name:"Próxima página"}).click();
     await page.getByRole("button", { name: "Abrir foto 9 de 9" }).click();
     await expect(page.getByLabel("Legenda (opcional)")).toHaveValue("O mar");
-    await page.getByRole("button", {name: "Tentar novamente"}).click();
+    await expect(page.getByRole("slider")).toHaveValue("2");
+    const preparo = page.waitForRequest(r => r.url().includes("acao=preparar"));
+    await page.getByRole("button",{name:"Concluir ajuste"}).click();
+    expect(Number(new URL((await preparo).url()).searchParams.get("x"))).toBeCloseTo(parseFloat(antes)/100, 4);
     await page.route(
       "**/api/fotos?acao=confirmar*",
       async (route) => {

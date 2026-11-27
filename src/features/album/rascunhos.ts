@@ -1,4 +1,7 @@
+import type { Corte } from "./corte";
+
 export type Rascunho = {
+  corte?: Corte;
   arquivo: File;
   legenda: string;
   tentativa: string;
